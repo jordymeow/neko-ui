@@ -1,0 +1,57 @@
+{/* Spacer.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as SpacerStories from './Spacer.stories';
+
+<Meta of={SpacerStories} />
+
+# NekoSpacer
+
+The NekoSpacer component provides a way to add vertical spacing between elements in your application's UI. It offers different sizes and the option to display a horizontal line.
+
+## Basic Usage
+
+```jsx
+<NekoSpacer />
+
+{/* Add space between sections */}
+<div>Section 1 content</div>
+<NekoSpacer />
+<div>Section 2 content</div>
+```
+
+This renders a basic vertical space between two sections.
+
+## Props
+
+<Controls />
+
+## Customization
+
+NekoSpacer offers options to control its appearance:
+
+- **Size**: You can control the height of the spacer using props like tiny, small (default), medium, and large. You can also directly set the height using the height prop.
+- **Line**: You can display a horizontal line within the spacer using the line prop.
+
+Here's an example with a medium spacer and a line:
+
+```jsx
+<NekoSpacer medium line>
+  This text is displayed within the spacer with a line.
+</NekoSpacer>
+```
+
+## Usage with Content
+
+The NekoSpacer can also accommodate text content. The content will be centered within the spacer.
+
+Here's an example with a spacer containing centered text:
+
+```jsx
+<NekoSpacer small>
+  Or Add Text Here
+</NekoSpacer>
+```
+
+By combining these options, you can create spacers that visually separate and organize content sections within your application's UI.

@@ -1,0 +1,47 @@
+{/* Gauge.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as GaugeStories from './Gauge.stories';
+
+<Meta of={GaugeStories} />
+
+# NekoGauge
+
+The NekoGauge component provides a semi-circular gauge visualization for displaying progress or data within your application's UI. It offers a clean and customizable design.
+
+## Basic Usage
+
+```jsx
+import { NekoGauge } from '@your-component-library/path/to/nekogauge';
+
+<NekoGauge value={750} max={1000}>
+  75%
+</NekoGauge>
+```
+
+This renders a NekoGauge with a value of 750 out of a maximum of 1000, displaying the percentage value (75%) within the gauge.
+
+## Props
+
+<Controls />
+
+## Data Representation
+
+The value prop determines the fill level of the gauge. It should be a number between the specified min and max values. The gauge visually represents the progress or data value relative to this range.
+
+## Customization Options
+
+NekoGauge offers several customization options:
+
+- **value**: The current value to be displayed (required).
+- **min**: The minimum value for the data range (defaults to 0).
+- **max**: The maximum value for the data range (defaults to 2500).
+- **width**: The width of the gauge element (defaults to 200px).
+- **background**: The background color of the gauge (defaults to #007cba).
+- **children**: You can place content within the gauge element, such as the displayed value or other relevant information.
+
+## Visual Design
+
+The gauge uses a semi-circular shape with a gradient fill that transitions based on the value. The provided content is positioned within the center of the gauge.
+

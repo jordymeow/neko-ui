@@ -1,0 +1,58 @@
+{/* Switch.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as SwitchStories from './Switch.stories';
+
+<Meta of={SwitchStories} />
+
+# NekoSwitch Component
+
+The NekoSwitch component is a customizable toggle switch for React applications. It provides a user-friendly way to switch between two states, typically used for on/off or yes/no scenarios.
+
+## Overview
+
+NekoSwitch is a styled component that renders a visually appealing switch with customizable labels, colors, and sizes. It's designed to be flexible and easy to integrate into various UI designs.
+
+## Usage
+
+```jsx
+import { NekoSwitch } from './path-to-neko-ui';
+
+function MyComponent() {
+  const [isOn, setIsOn] = useState(false);
+
+  return (
+    <NekoSwitch
+      checked={isOn}
+      onChange={(value) => setIsOn(value)}
+      onLabel="On"
+      offLabel="Off"
+    />
+  );
+}
+```
+
+## Props
+
+<Controls />
+
+## Customization
+
+```jsx
+<NekoSwitch
+  width={60}
+  height={30}
+  fontSize="15px"
+  onLabel="Active"
+  offLabel="Inactive"
+  onBackgroundColor="#4CAF50"
+  offBackgroundColor="#F44336"
+  checked={isActive}
+  onChange={handleToggle}
+/>
+```
+
+## Accessibility
+
+The component uses a hidden input element to maintain accessibility. It also provides visual feedback for the disabled state by reducing opacity and changing the cursor style.

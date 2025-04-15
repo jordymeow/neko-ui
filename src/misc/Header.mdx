@@ -1,0 +1,38 @@
+{/* Header.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as HeaderStories from './Header.stories';
+
+<Meta of={HeaderStories} />
+
+# NekoHeader
+
+The NekoHeader component provides a styled header element for your NekoUI application. It includes the Neko logo, title, subtitle, and optional extra content.
+
+## Basic Usage
+
+```jsx
+import { NekoHeader } from '@your-component-library/path/to/nekoheader';
+
+<NekoHeader title="My Neko App" subtitle="A meow-gical application" />
+```
+
+This renders a basic NekoHeader with the title "My Neko App" and the subtitle "A meow-gical application".
+
+## Props
+
+<Controls />
+
+## Content and Customization
+
+The header includes the following elements:
+
+- Neko logo
+- Title (customizable)
+- Subtitle (customizable)
+- Optional extra content area (for buttons, icons, or other elements)
+
+## Saving State (Optional)
+
+The component can display a save icon when the saving prop is set to true. This is useful for indicating to the user that data is being saved.

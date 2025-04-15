@@ -1,0 +1,103 @@
+{/* Table.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as TableStories from './Table.stories';
+
+<Meta of={TableStories} />
+
+# NekoTable
+
+NekoTable is a versatile and feature-rich table component designed for displaying and interacting with tabular data in React applications.
+
+## Overview
+
+NekoTable offers a wide range of functionality, including:
+
+- Sortable columns
+- Selectable rows
+- Customizable styling
+- Filtering
+- Busy state handling
+- Empty state messaging
+
+## Basic Usage
+
+To use NekoTable, import it and provide the necessary props:
+
+```jsx
+import { NekoTable } from './path-to-neko-ui';
+
+function MyTable() {
+  const columns = [
+    { accessor: 'name', title: 'Name', sortable: true },
+    { accessor: 'age', title: 'Age', align: 'right' },
+    { accessor: 'email', title: 'Email' },
+  ];
+
+  const data = [
+    { id: 1, name: 'John Doe', age: 30, email: 'john@example.com' },
+    { id: 2, name: 'Jane Smith', age: 28, email: 'jane@example.com' },
+  ];
+
+  return <NekoTable columns={columns} data={data} />;
+}
+```
+
+## Props
+
+<Controls />
+
+## Key Features
+
+### Sortable Columns
+
+Make columns sortable by setting the sortable property in the column definition and providing an onSortChange function.
+
+### Row Selection
+
+Enable row selection by providing onSelect, onUnselect, and selectedItems props. Use onSelectRow for single-row selection.
+
+### Styling Variants
+
+Choose between 'default' and 'raw' variants using the variant prop for different styling options.
+
+### Filtering
+
+Implement column filtering by adding a filters property to column definitions and providing an onFilterChange function.
+
+### Busy State
+
+Show a loading overlay by setting the busy prop to true.
+
+### Empty State
+
+Customize the empty state message using the emptyMessage prop.
+
+## Customization
+
+NekoTable offers various customization options:
+
+- Column alignment and styling
+- Alternate row colors
+- Custom cell rendering
+
+Example of custom column styling:
+
+```jsx
+const columns = [
+  {
+    accessor: 'name',
+    title: 'Name',
+    align: 'left',
+    width: '200px',
+    style: { fontWeight: 'bold' },
+  },
+  // ... other columns
+];
+```
+
+## Accessibility
+
+NekoTable is designed with accessibility in mind, providing proper structure and keyboard navigation for table elements.
+By leveraging NekoTable, you can create powerful and flexible data tables in your React application with ease.

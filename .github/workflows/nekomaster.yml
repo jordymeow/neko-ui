@@ -1,0 +1,20 @@
+name: NekoUI
+
+on:
+  push:
+    branches:
+      - '*'  # This will trigger the action on every branch push
+  pull_request:  # Optionally, you can add this to trigger on pull requests as well
+    branches:
+      - '*'  # This will trigger the action on every branch pull request
+
+jobs:
+  build:
+    uses: meowarts/nekomaster-actions/.github/workflows/deploy.yml@main
+    secrets:
+      do_token: ${{ secrets.DO_TOKEN }}
+      ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+    with:
+      action: build
+      folder: neko-ui
+      instance: neko-ui

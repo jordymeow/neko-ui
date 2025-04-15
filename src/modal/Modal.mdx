@@ -1,0 +1,144 @@
+{/* Modal.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as ModalStories from './Modal.stories';
+
+<Meta of={ModalStories} />
+
+# NekoModal
+
+NekoModal is a flexible and customizable modal component for React applications, built on top of the react-modal library.
+
+## Overview
+
+NekoModal provides a customizable modal dialog with features such as:
+
+- Customizable title and content
+- Optional thumbnail
+- Configurable OK and Cancel buttons
+- Support for custom buttons
+- Full-size mode
+- Animations and backdrop blur effect
+
+## Basic Usage
+
+Import the NekoModal component and use it in your React application:
+
+```jsx
+import React, { useState } from 'react';
+import { NekoModal } from './path-to-neko-ui';
+
+function MyComponent() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <button onClick={() => setIsOpen(true)}>Open Modal</button>
+      <NekoModal
+        isOpen={isOpen}
+        title="Example Modal"
+        content="This is the modal content."
+        okButton={{
+          label: "Confirm",
+          onClick: () => setIsOpen(false)
+        }}
+        cancelButton={{
+          label: "Close",
+          onClick: () => setIsOpen(false)
+        }}
+      />
+    </div>
+  );
+}
+```
+
+This code creates a simple modal that can be opened and closed by clicking a button. The modal has a title, content, and a close button.
+
+## Props
+
+<Controls />
+
+## Features
+
+### Customizable Content
+
+You can set the title, content, and even add a thumbnail to your modal:
+
+```jsx
+<NekoModal
+  title="Product Details"
+  content="This is a detailed description of the product."
+  thumbnail={<img src="product-image.jpg" alt="Product" />}
+  // ...other props
+/>
+```
+
+### Flexible Button Configuration
+
+Configure the OK and Cancel buttons with custom labels, click handlers, and disabled states:
+
+```jsx
+<NekoModal
+  okButton={{
+    label: "Save",
+    onClick: handleSave,
+    disabled: !isValid
+  }}
+  cancelButton={{
+    label: "Discard",
+    onClick: handleDiscard
+  }}
+  // ...other props
+/>
+```
+
+### Custom Buttons
+
+Add custom buttons to the modal:
+
+```jsx
+<NekoModal
+  customButtons={
+    <button onClick={handleCustomAction}>Custom Action</button>
+  }
+  customButtonsPosition="left" // or "right"
+  // ...other props
+/>
+```
+
+### Full-Size Mode
+
+Enable full-size mode for larger modals:
+
+```jsx
+<NekoModal
+  fullSize={true}
+  // ...other props
+/>
+```
+
+### Enter Key Support
+
+Allow the OK button to be triggered by pressing Enter:
+
+```jsx
+<NekoModal
+  okOnEnter={true}
+  // ...other props
+/>
+```
+
+## Styling
+
+NekoModal uses styled-components for styling. You can customize the appearance by passing a className or style prop, or by modifying the StyledNekoModal component.
+
+## Accessibility
+
+The component uses the react-modal library, which provides good accessibility features out of the box. The modal traps focus and supports closing via the Esc key.
+
+## Notes
+
+- The component includes default animations for opening and closing.
+- Deprecated button props will trigger console warnings. Use the new okButton and cancelButton object props instead.
+- The modal can render custom content by passing children to the component.

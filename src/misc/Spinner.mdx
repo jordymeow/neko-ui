@@ -1,0 +1,38 @@
+{/* Spinner.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as SpinnerStories from './Spinner.stories';
+
+<Meta of={SpinnerStories} />
+
+# NekoSpinner
+
+The NekoSpinner component offers a versatile loading spinner to indicate ongoing processes or background activity within your application. Currently, it supports a double-bounce circle spinner style.
+
+## Basic Usage
+
+```jsx
+<NekoSpinner />
+```
+
+This renders a centered double-bounce circle spinner in the default size.
+
+## Props
+
+<Controls />
+
+## Spinner Type
+
+NekoSpinner currently supports a single spinner type:
+
+- circle: A double-bounce circle animation (default).
+
+## Size Customization
+
+While the component offers a default size, you can customize it using the size prop. You can provide a value in pixels (e.g., size={50}) or a percentage value (e.g., size="30%").
+
+## Usage Considerations
+
+- Use spinners strategically to indicate ongoing asynchronous operations or background tasks that might take some time to complete.
+- Avoid excessive use of spinners, as they can overwhelm users and hinder the overall user experience.

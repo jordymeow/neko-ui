@@ -1,0 +1,52 @@
+{/* Pill.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as PillStories from './Pill.stories';
+
+<Meta of={PillStories} />
+
+# NekoPill
+
+The NekoPill component offers a styled and versatile pill-shaped button element for your application's UI. It supports various visual styles, optional LED indicators, and expandable content.
+
+## Basic Usage
+
+```jsx
+<NekoPill onClick={() => console.log('Pill clicked!')}>Click Me</NekoPill>
+```
+
+This renders a primary colored pill with the text "Click Me" that triggers a console log message when clicked.
+
+## Props
+
+<Controls />
+
+## Pill Styles
+
+NekoPill offers different preset styles that affect its appearance:
+
+- **primary**: Blue background, the default style.
+- **secondary**: Light gray background with a solid border.
+- **danger**: Red background with a solid border.
+- **warning**: Yellow background with a solid border.
+- **success**: Green background with a solid border.
+
+## LED Indicator
+
+The led prop enables an optional LED-like visual element that pulsates within the pill.
+
+## Link Behavior
+
+You can use the link prop to transform the pill into a clickable link that opens the specified URL in a new tab.
+
+## Extender Content
+
+NekoPill allows adding expandable content with the extender_label and extender_children props. Clicking the pill reveals the extender content positioned next to it.
+
+## Customization
+
+While the component offers built-in styles and functionalities, you can further customize its appearance by:
+
+- Overriding styles in your global CSS or scoped styles.
+- Referencing the component's class names (e.g., primary, danger) for targeted styling.

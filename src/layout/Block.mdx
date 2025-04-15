@@ -1,0 +1,65 @@
+{/* Block.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as BlockStories from './Block.stories';
+
+<Meta of={BlockStories} />
+
+# NekoBlock
+
+The NekoBlock component is a versatile container for displaying content within your application. It offers various styles and functionalities to fit different use cases.
+
+## Basic Usage
+
+```jsx
+<NekoBlock title="My Block Title">
+  This is the content of the block.
+</NekoBlock>
+```
+
+## Props
+
+<Controls />
+
+## Styles
+
+NekoBlock offers different styles to customize its appearance:
+
+- **Default**: This is the basic style with a white background and border.
+- **Primary**: This style has a background color matching your application's primary color and white text.
+- **Standard**: This removes the default box shadow from the content area.
+- **Raw**: This style removes padding and background color, making it suitable for custom styling within the content area.
+
+You can apply these styles by setting the className prop:
+
+```jsx
+<NekoBlock title="Primary Block" className="primary">
+  This is a primary block.
+</NekoBlock>
+```
+
+## Features
+
+### Title and Actions
+
+The NekoBlock can display a title using the title prop. You can also add custom actions to the header area using the action prop, which accepts a React element.
+
+```jsx
+<NekoBlock
+  title="Block with Action"
+  action={<button>Click Me!</button>}
+>
+  This block has a clickable button in the header.
+</NekoBlock>
+```
+
+### Busy State
+
+The NekoBlock can display a busy overlay while content is loading or processing something. Use the busy prop to enable the busy state.
+
+```jsx
+<NekoBlock title="Loading..." busy>
+  Content is being loaded...
+</NekoBlock>
+```

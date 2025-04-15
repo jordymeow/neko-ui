@@ -1,0 +1,44 @@
+{/* Upload.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as UploadStories from './Upload.stories';
+
+<Meta of={UploadStories} />
+
+# NekoUpload
+
+The NekoUpload component provides a user-friendly drag-and-drop and click-to-upload functionality for integrating file uploads into your React applications.
+
+## Basic Usage
+
+```jsx
+<NekoUpload apiUrl="[invalid URL removed]" apiConfig={{ token: 'your_api_token' }} onSuccess={(data) => console.log(data)} onFailure={(error) => console.error(error)} />
+```
+
+This renders a basic upload component that allows users to select files for upload to a specified API endpoint (replace with your actual URL and configuration). Upon successful upload, the onSuccess callback receives the response data. The onFailure callback receives any errors encountered during the upload process.
+
+## Props
+
+<Controls />
+
+## Customization
+
+NekoUpload offers various customization options to tailor it to your specific requirements:
+
+- **Size**: Control the width and height using the width and height props.
+- **Success/Failure Callbacks**: Define functions using onSuccess and onFailure props to handle successful uploads and potential errors.
+- **Style**: Override default styles using the inline style prop.
+- **MIME Types**: Specify accepted file types using the accept prop (e.g., accept="image/*" for images).
+- **Multiple Files**: Allow selecting multiple files at once by setting the multiple prop to true.
+- **Icon**: Customize the upload icon using the NekoIcon component with props like icon, iconSize, and color.
+- **Disabled State**: Disable user interaction with the upload component using the disabled prop.
+
+## Drag-and-Drop Functionality
+
+The component supports a drag-and-drop interaction for a more intuitive user experience. Users can drag and drop files directly onto the upload area to initiate the upload process.
+Usage Considerations
+
+- Ensure your server-side API is configured to handle file uploads.
+- Provide clear feedback to users about the upload progress (success, failure, or ongoing).
+- Consider file size limitations and validation rules for uploaded files.

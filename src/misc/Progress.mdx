@@ -1,0 +1,48 @@
+{/* Progress.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as ProgressStories from './Progress.stories';
+
+<Meta of={ProgressStories} />
+
+# NekoProgress
+
+The NekoProgress component provides a styled progress bar for visualizing progress within your application. It displays the current progress, supports busy state animations, and integrates optional pause/stop buttons.
+
+## Basic Usage
+
+```jsx
+<NekoProgress value={50} max={100} />
+```
+
+This renders a progress bar filled halfway (50 out of 100).
+
+## Props
+
+<Controls />
+
+## Progress Visualization
+
+- The progress bar fills from left to right, indicating the current progress relative to the maximum value.
+- The component displays the current progress value by default. You can customize this behavior using the status prop.
+
+## Busy State
+
+The busy prop enables an animation that simulates activity within the progress bar.
+
+## Pause/Stop Controls
+
+When busy is enabled, the component displays pause and stop buttons that trigger the respective callback functions (onPauseClick and onStopClick) provided by the user.
+
+## Customization
+
+While the component offers built-in styles and animations, you can further customize its appearance by:
+
+- Overriding styles in your global CSS or scoped styles.
+- Referencing the component's class names (e.g., neko-progress-current) for targeted styling.
+
+## Usage Considerations
+
+- NekoProgress is suitable for scenarios where you need to visually represent ongoing progress towards a specific goal.
+- Consider the overall information density and user experience when deciding whether to use a progress bar or alternative feedback mechanisms.

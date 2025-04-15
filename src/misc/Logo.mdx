@@ -1,0 +1,34 @@
+{/* Logo.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as LogoStories from './Logo.stories';
+
+<Meta of={LogoStories} />
+
+# NekoLogo
+
+The NekoLogo component renders the Neko application logo. It uses an inline SVG image for maximum control and customization.
+
+## Basic Usage
+
+```jsx
+<NekoLogo />
+```
+
+This renders the Neko logo using the default SVG definition.
+
+## Props
+
+<Controls />
+
+## Customization
+
+While the component doesn't accept props for direct customization, you can modify the inline SVG code within the component to adjust the logo's appearance. This approach offers full control over colors, shapes, and animations.
+
+## Usage Considerations
+
+- The logo is sized using a maximum width and height to ensure proper scaling within your application.
+- The SVG uses nested elements, masks, and paths to define the logo's visual elements.
+
+For advanced customization or animation needs, consider using a dedicated SVG animation library or creating a separate SVG file for the logo and referencing it using an \<img\> tag.

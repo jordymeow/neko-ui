@@ -1,0 +1,46 @@
+{/* Message.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as MessageStories from './Message.stories';
+
+<Meta of={MessageStories} />
+
+# NekoMessage
+
+The NekoMessage component provides a styled message box for displaying informative or actionable content in your application. It supports various message types with distinct visual styles.
+
+## Basic Usage
+
+```jsx
+<NekoMessage variant="success">Your data has been saved successfully!</NekoMessage>
+```
+
+This renders a success message with a green background and white text.
+
+## Props
+
+<Controls />
+
+## Message Types and Styles
+
+NekoMessage offers different variants that affect the message's appearance:
+
+- **success**: Green background, typically used for positive feedback messages.
+- **info**: Blue background, commonly used for informational messages.
+- **warning**: Orange background, often used for cautionary messages.
+- **danger**: Red background, suitable for error messages.
+- **special**: Purple background, can be used for custom or specific message types (if defined in your theme).
+
+The default variant is "info" if none is provided.
+
+## Content and Links
+
+NekoMessage allows you to display any content within its container, including text, icons, or even links. Links automatically inherit the message's text color for consistency.
+
+## Customization
+
+While the component offers built-in styles for different message types, you can further customize its appearance by:
+
+- Overriding styles in your global CSS or scoped styles.
+- Referencing the component's class names (neko-message and variant-specific classes like danger or success) for targeted styling.

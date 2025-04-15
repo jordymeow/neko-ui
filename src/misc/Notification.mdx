@@ -1,0 +1,48 @@
+{/* Notification.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as NotificationStories from './Notification.stories';
+
+<Meta of={NotificationStories} />
+
+# NekoNotification
+
+The NekoNotification component builds upon the `NekoContainer` component to create styled notification messages. It provides visual cues to indicate the severity or type of the notification.
+
+## Basic Usage
+
+```jsx
+<NekoNotification variant="warning">This is a warning notification.</NekoNotification>
+```
+
+This renders a warning notification with an orange border on the left side.
+
+## Props
+
+<Controls />
+
+## Notification Types and Styles
+
+NekoNotification supports different variants that affect the message's appearance:
+
+- **info**: Blue border on the left, typically used for informational messages.
+- **warning**: Orange border on the left, often used for cautionary messages.
+- **error**: Red border on the left, suitable for error messages.
+
+The visual style provides a quick indication of the notification's importance or urgency.
+
+## Content
+
+NekoNotification allows you to display any content within its container, including text, icons, or even rich text.
+
+## Customization
+
+While the component offers built-in styles for different notification types, you can further customize its appearance by:
+
+- Overriding styles in your global CSS or scoped styles.
+- Referencing the component's class names (neko-notification and variant-specific classes like info or warning) for targeted styling.
+
+## Additional Notes:
+
+- This component leverages the NekoContainer component for layout and potentially inherits styles from it.

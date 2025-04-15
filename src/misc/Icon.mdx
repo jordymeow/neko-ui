@@ -1,0 +1,57 @@
+{/* Icon.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as IconStories from './Icon.stories';
+
+<Meta of={IconStories} />
+
+# NekoIcon
+
+The NekoIcon component provides a versatile icon rendering solution for your NekoUI application. It supports various icon sources, hover effects, and states like loading and disabled.
+
+## Basic Usage
+
+```jsx
+<NekoIcon icon="lock" />   // Using pre-defined icon name
+<NekoIcon icon={<path d="M..." />} />  // Using custom SVG icon
+```
+
+This renders an icon based on the provided input. You can use pre-defined icon names (like "lock") or custom SVG paths.
+
+## Props
+
+<Controls />
+
+## Customization Options
+
+NekoIcon offers a variety of customization features:
+
+- **icon**: The icon to be displayed. It can be a pre-defined icon name (refer to component source code), a custom SVG path, or an Iconify icon object.
+- **color**: The color of the icon.
+- **spinning**: Adds a spinning animation to the icon, useful for loading states.
+- **className**: Apply additional CSS classes for custom styling.
+- **tooltip**: Define a tooltip text that appears on hover.
+- **raw**: Renders the icon without any additional styling, allowing for more control over appearance.
+- **isBusy**: Displays a loading indicator (spinner) instead of the icon.
+- **variant**: Applies pre-defined color styles based on variants like "primary", "success", "warning", or "danger".
+- **containerStyle**: Set custom styles for the icon container.
+- **hoverColor**: Define a custom hover color for the icon.
+- **disabled**: Renders the icon in a disabled state, making it non-interactive and visually indicating its disabled status.
+
+## Icon Sources
+
+NekoIcon supports different icon sources:
+
+- **Pre-defined Icons**: A set of built-in icons accessible by name (e.g., "lock").
+- **Custom SVG Icons**: You can provide custom SVG paths to define the icon.
+- **Iconify Icons**: Use Iconify icons directly for a wider range of options.
+
+## Rendering and States
+
+The component renders the icon based on the provided props and conditions:
+
+- **Tooltips**: If a tooltip is defined, the icon is wrapped in a NekoTooltip component.
+- **Raw Rendering**: Setting raw to true removes default styling and allows for more control over the icon's appearance.
+- **Loading State**: When isBusy is set to true, a loading indicator is displayed instead of the icon.
+- **Disabled State**: Setting disabled to true renders the icon in a disabled state.

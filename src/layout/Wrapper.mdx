@@ -1,0 +1,70 @@
+{/* Wrapper.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as WrapperStories from './Wrapper.stories';
+
+<Meta of={WrapperStories} />
+
+# NekoWrapper & NekoColumn
+
+The NekoWrapper and NekoColumn components provide a foundation for building responsive layouts within your application's UI.
+
+## NekoWrapper
+
+The NekoWrapper component acts as a container for layout elements. It uses flexbox to wrap its child elements horizontally.
+
+## NekoColumn
+
+The NekoColumn component represents individual columns within the layout. It offers flexibility in sizing and spacing.
+
+## Basic Usage
+
+```jsx
+import { NekoWrapper, NekoColumn } from '@your-component-library/path/to/nekowrapper';
+
+<NekoWrapper>
+  <NekoColumn>
+    This content is in the first column.
+  </NekoColumn>
+  <NekoColumn>
+    This content is in the second column.
+  </NekoColumn>
+</NekoWrapper>
+```
+
+This renders two equally sized columns with content inside each.
+
+## Props
+
+<Controls />
+
+## Responsive Behavior
+
+By default, NekoColumn components will automatically adjust their width based on the available space within the NekoWrapper container. This allows for responsive layouts that adapt to different screen sizes.
+
+## Customization Options
+
+Both NekoWrapper and NekoColumn offer customization options:
+
+- **NekoWrapper**: None exposed through props in this example, but potentially customizable with CSS.
+- **NekoColumn**:
+  - **fullWidth**: You can make a column span the entire width of the NekoWrapper using the fullWidth prop.
+  - **minimal**: You can remove the default padding around the column content using the minimal prop.
+
+Here's an example with a full-width column and a minimal column:
+
+```jsx
+<NekoWrapper>
+  <NekoColumn fullWidth>
+    This content spans the entire width.
+  </NekoColumn>
+  <NekoColumn minimal>
+    Content with minimal padding.
+  </NekoColumn>
+</NekoColumn>
+```
+
+## Combining Functionality
+
+By combining NekoWrapper and NekoColumn with different configurations, you can create complex and responsive layouts for your application's UI.

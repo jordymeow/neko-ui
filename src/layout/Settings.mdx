@@ -1,0 +1,51 @@
+{/* Settings.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as SettingsStories from './Settings.stories';
+
+<Meta of={SettingsStories} />
+
+# NekoSettings
+
+The NekoSettings component provides a structured layout for displaying settings within your application. It offers a clear separation between the setting title and its content area.
+
+## Basic Usage
+
+```jsx
+<NekoSettings title="General Settings">
+  <p>This is the content of the setting.</p>
+  {/* You can add various form controls here */}
+</NekoSettings>
+```
+
+This renders a basic NekoSettings section with a title and content area.
+
+## Props
+
+<Controls />
+
+## Customization
+
+NekoSettings offers options to customize its appearance:
+
+- **Title**: You can specify a title for the setting using the title prop.
+- **Content Alignment**: You can control the alignment of the content within the setting area using the contentAlign prop. It accepts either 'left' (default) or 'right'.
+- **Title** Styling: You can apply custom styles to the title using the titleStyle prop.
+
+Here's an example with right-aligned content and a custom title style:
+
+```jsx
+<NekoSettings
+  title="Layout Options"
+  contentAlign="right"
+  titleStyle={{ color: '#263238' }}
+>
+  <p>Choose your preferred layout.</p>
+  {/* Form controls for layout options */}
+</NekoSettings>
+```
+
+## Content and Flexibility
+
+The content area of NekoSettings is flexible and can accommodate various form controls like text inputs, selects, checkboxes, and buttons. Remember to style these controls appropriately within your application.

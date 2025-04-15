@@ -1,0 +1,87 @@
+{/* Checkbox.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as CheckboxStories from './Checkbox.stories';
+
+<Meta of={CheckboxStories} />
+
+# NekoCheckboxGroup/NekoCheckbox Component
+
+NekoCheckboxGroup is a container component for React applications, designed to group and manage multiple NekoCheckbox components. It provides a way to apply common properties to a set of checkboxes and can optionally limit the number of checkboxes that can be checked.
+
+## Overview
+
+The NekoCheckboxGroup component offers:
+
+- A container for multiple NekoCheckbox components
+- Ability to set a common name for all child checkboxes
+- Option to limit the maximum number of checkable items
+- Propagation of the 'isPro' property to child checkboxes
+
+## Usage
+
+To use NekoCheckboxGroup in your React application, import it and wrap your NekoCheckbox components:
+
+```jsx
+import { NekoCheckboxGroup, NekoCheckbox } from './path-to-neko-ui';
+
+function MyCheckboxGroup() {
+  return (
+    <NekoCheckboxGroup name="fruits" max={2}>
+      <NekoCheckbox label="Apple" />
+      <NekoCheckbox label="Banana" />
+      <NekoCheckbox label="Cherry" />
+    </NekoCheckboxGroup>
+  );
+}
+```
+
+## Props
+
+<Controls />
+
+## Features
+
+### Common Name
+
+NekoCheckboxGroup applies a common name to all child NekoCheckbox components that don't have their own name prop:
+
+```jsx
+<NekoCheckboxGroup name="preferences">
+  <NekoCheckbox label="Email notifications" />
+  <NekoCheckbox label="SMS alerts" />
+</NekoCheckboxGroup>
+```
+
+### Maximum Selection Limit
+
+You can set a maximum number of checkboxes that can be checked:
+
+```jsx
+<NekoCheckboxGroup name="toppings" max={3}>
+  <NekoCheckbox label="Cheese" />
+  <NekoCheckbox label="Pepperoni" />
+  <NekoCheckbox label="Mushrooms" />
+  <NekoCheckbox label="Olives" />
+</NekoCheckboxGroup>
+```
+
+### Pro Feature Propagation
+
+The isPro property is passed down to all child checkboxes:
+
+```jsx
+<NekoCheckboxGroup name="advanced-features" isPro={userIsPro}>
+  <NekoCheckbox label="Advanced Analytics" requirePro />
+  <NekoCheckbox label="Custom Reporting" requirePro />
+</NekoCheckboxGroup>
+```
+
+## Styling
+
+NekoCheckboxGroup doesn't apply any styling of its own. The styling is handled by the individual NekoCheckbox components. However, you can wrap the NekoCheckboxGroup in a styled container if you need to apply group-level styling.
+
+## Accessibility
+
+While NekoCheckboxGroup doesn't directly add accessibility features, it helps maintain semantic grouping of related checkboxes. When using the max prop to limit selections, consider adding instructions for screen readers to convey this limitation.

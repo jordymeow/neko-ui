@@ -1,0 +1,43 @@
+{/* UploadDropArea.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as UploadDropAreaStories from './UploadDropArea.stories';
+
+<Meta of={UploadDropAreaStories} />
+
+# NekoUploadDropArea
+
+The NekoUploadDropArea component provides a designated drop zone for file uploads within your React applications. It supports drag-and-drop functionality and allows users to select files for upload through a standard file selection dialog.
+
+## Usage
+
+NekoUploadDropArea extends the functionality of the underlying file input element with visual cues and event handling for a user-friendly upload experience.
+
+```jsx
+<NekoUploadDropArea apiUrl="[invalid URL removed]" apiConfig={{ token: 'your_api_token' }} onSuccess={(data) => console.log(data)} onFailure={(error) => console.error(error)}>
+  Drag & Drop your files here or click to browse
+</NekoUploadDropArea>
+```
+
+This example renders a drop zone that allows users to drag and drop files for upload to a specified API endpoint (replace with your actual URL and configuration). Upon successful upload, the onSuccess callback receives the response data. The onFailure callback receives any errors encountered during the upload process.
+
+## Props
+
+<Controls />
+
+## Customization
+
+- **Content**: Include any text or visual elements within the drop zone using children props.
+- **Disabled State**: Disable user interaction with the drop zone using the disabled prop.
+- **Multiple File Selection**: Allow selecting multiple files at once by setting the multiple prop to true.
+- **Accepted File Types**: Specify allowed file types using the accept prop (e.g., .csv, .json).
+
+## Drag-and-Drop Functionality
+
+The component provides visual feedback (changing background color) to indicate when users drag files over the drop zone. When files are dropped, the upload process is initiated (if an API URL is provided) or the onSelectFiles callback is triggered (for custom handling).
+Usage Considerations
+
+- Consider using the NekoUpload component for a more comprehensive upload experience with progress indicators and error handling.
+- When using an API for uploads, ensure your server-side API is configured to handle file uploads.
+- Provide clear feedback to users about the upload status (success, failure, or ongoing).

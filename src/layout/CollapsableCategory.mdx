@@ -1,0 +1,81 @@
+{/* CollapsableCategory.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as CollapsableCategoryStories from './CollapsableCategory.stories';
+
+<Meta of={CollapsableCategoryStories} />
+
+# NekoCollapsableCategory & NekoCollapsableCategories
+
+The `NekoCollapsableCategory` and `NekoCollapsableCategories` components provide a way to create expandable and collapsible content sections within your application.
+
+## NekoCollapsableCategory
+
+The `NekoCollapsableCategory` component is used to create individual collapsible sections. It takes the following content:
+
+- **title:** (Required) The text displayed in the category header.
+- **children:** The content that will be displayed within the collapsible section.
+
+Here's a basic example of a collapsible category:
+
+```jsx
+<NekoCollapsableCategory title="Category Title">
+  This is the content of the collapsible category.
+</NekoCollapsableCategory>
+```
+
+This renders a category header with the title "Category Title" and collapsible content underneath. Clicking the header expands or collapses the content.
+
+## Props
+
+<Controls />
+
+## Additional Features
+
+- **isCollapsed**: (Optional) A boolean prop to control the initial state of the section (expanded or collapsed). Defaults to false (expanded).
+- **onClick**: (Optional) A function to be called when the category header is clicked.
+- **keepState**: (Optional) A string key to use localStorage to persist the collapsed state of the category across sessions.
+- **disabled**: (Optional) A boolean prop to disable interaction with the category (clicking the header has no effect).
+- **hide**: (Optional) A boolean prop to hide the entire category.
+
+Here's an example using some of these features:
+
+```jsx
+<NekoCollapsableCategory
+  title="Disabled Category"
+  disabled
+  isCollapsed
+>
+  This category is disabled and initially collapsed.
+</NekoCollapsableCategory>
+
+<NekoCollapsableCategory
+  title="Category with Persistant State"
+  keepState="my-category-state"
+>
+  This category remembers its collapsed state across sessions.
+</NekoCollapsableCategory>
+```
+
+## NekoCollapsableCategories
+
+The NekoCollapsableCategories component acts as a container for multiple NekoCollapsableCategory components. It manages the overall state and rendering of the collapsible sections.
+
+There's currently only one prop available for NekoCollapsableCategories:
+
+- children: (Required) An array of NekoCollapsableCategory components.
+
+Here's an example of using NekoCollapsableCategories:
+
+```jsx
+<NekoCollapsableCategories>
+  <NekoCollapsableCategory title="Category 1">Content 1</NekoCollapsableCategory>
+  <NekoCollapsableCategory title="Category 2">Content 2</NekoCollapsableCategory>
+  <NekoCollapsableCategory title="Category 3">Content 3</NekoCollapsableCategory>
+</NekoCollapsableCategories>
+```
+
+This renders a group of three collapsible categories within the NekoCollapsableCategories container.
+
+By combining these components, you can create flexible and user-friendly interfaces for managing expandable and collapsible content sections in your applications.

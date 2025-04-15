@@ -1,0 +1,95 @@
+{/* MediaLibraryModal.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as MediaLibraryModalStories from './MediaLibraryModal.stories';
+
+<Meta of={MediaLibraryModalStories} />
+
+# NekoMediaLibraryModal
+
+The NekoMediaLibraryModal is a comprehensive media management component that allows users to browse, search, select, and upload media files.
+
+## Overview
+
+NekoMediaLibraryModal provides a modal interface for managing media files. It supports features such as:
+
+- Grid and list view of media items
+- Search functionality
+- Multi-select capability
+- Drag-and-drop reordering of selected items
+- File upload
+- Pagination
+- Filtering for unused images
+
+## Basic Usage
+
+Import the NekoMediaLibraryModal component and use it in your React application:
+
+```jsx
+import React, { useState } from 'react';
+import { NekoMediaLibraryModal } from './path-to-neko-ui';
+
+function MyComponent() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState([]);
+
+  const handleMediaSelect = (media) => {
+    setSelectedMedia([...selectedMedia, media]);
+  };
+
+  return (
+    <div>
+      <button onClick={() => setIsOpen(true)}>Open Media Library</button>
+      <NekoMediaLibraryModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        images={[/* Your media array */]}
+        onClick={handleMediaSelect}
+        selected={selectedMedia}
+        multiSelect={true}
+      />
+    </div>
+  );
+}
+```
+
+## Props
+
+<Controls />
+
+## Features
+
+### Grid and List View
+
+Users can switch between grid and list view for media items.
+
+### Search Functionality
+
+The component includes a search input that allows users to filter media items.
+
+### Multi-select and Reordering
+
+When multiSelect is enabled, users can select multiple media items and reorder them using drag-and-drop.
+
+### File Upload
+
+The component supports file uploads when showUploader is set to true.
+
+### Pagination
+
+Built-in pagination controls allow users to navigate through large media collections.
+
+### Customization
+
+The NekoMediaLibraryModal can be customized using styled-components. You can adjust the styling by modifying the StyledNekoModal component or by passing custom class names.
+
+## Accessibility
+
+The component includes keyboard-accessible controls and uses semantic HTML to ensure good accessibility practices.
+
+## Notes
+
+- The component uses various sub-components like NekoModal, NekoButton, NekoInput, etc. Ensure these components are available in your project.
+- File type restrictions can be set using the accept prop.
+- The component supports both image and video files.

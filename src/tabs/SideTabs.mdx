@@ -1,0 +1,115 @@
+{/* SideTabs.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as SideTabsStories from './SideTabs.stories';
+
+<Meta of={SideTabsStories} />
+
+# NekoSideTabs and NekoSideTab
+
+NekoSideTabs is a flexible and customizable side tab component for React applications, designed to work in conjunction with NekoSideTab components.
+
+## Overview
+
+NekoSideTabs provides a vertical tab interface with features such as:
+
+- Customizable tab titles and content
+- Pro-only tab options
+- Active tab highlighting
+- Custom right actions for tabs
+- Drag and drop support
+
+## Basic Usage
+
+Import the NekoSideTabs and NekoSideTab components and use them in your React application:
+
+```jsx
+import React from 'react';
+import { NekoSideTabs, NekoSideTab } from './path-to-neko-ui';
+
+function MyComponent() {
+  return (
+    <NekoSideTabs activeTabIndex={0} isPro={false} onChange={(index, tab, event) => console.log('Tab changed', index)}>
+      <NekoSideTab title="Tab 1">
+        <p>Content for Tab 1</p>
+      </NekoSideTab>
+      <NekoSideTab title="Tab 2">
+        <p>Content for Tab 2</p>
+      </NekoSideTab>
+      <NekoSideTab title="Pro Tab" requirePro={true}>
+        <p>This tab is only for Pro users</p>
+      </NekoSideTab>
+    </NekoSideTabs>
+  );
+}
+```
+
+## Props
+
+<Controls />
+
+## Features
+
+### Customizable Tabs
+
+Each NekoSideTab can have a custom title and content:
+
+```jsx
+<NekoSideTab title="Custom Tab">
+  <h2>Welcome to the Custom Tab</h2>
+  <p>This tab can contain any React components or HTML elements.</p>
+</NekoSideTab>
+```
+
+### Pro-only Tabs
+
+Restrict certain tabs to Pro users:
+
+```jsx
+<NekoSideTab title="Pro Feature" requirePro={true}>
+  <p>This content is only visible to Pro users.</p>
+</NekoSideTab>
+```
+
+### Custom Right Actions
+
+Add custom actions to the right side of a tab:
+
+```jsx
+<NekoSideTab 
+  title="Tab with Actions"
+  rightActions={<button onClick={() => console.log('Action clicked')}>Action</button>}
+>
+  <p>Tab content here</p>
+</NekoSideTab>
+```
+
+### Drag and Drop Support
+
+Enable drag and drop functionality for tabs:
+
+```jsx
+<NekoSideTab 
+  title="Draggable Tab"
+  onDragOver={(e) => e.preventDefault()}
+  onDrop={(e) => handleDrop(e)}
+>
+  <p>You can drag items onto this tab</p>
+</NekoSideTab>
+```
+
+## Styling
+
+NekoSideTabs and NekoSideTab use styled-components for styling. You can customize the appearance by modifying the TabContainer, Tab, and TabContent styled components.
+
+## Accessibility
+
+The component uses semantic HTML structure and supports keyboard navigation. However, additional ARIA attributes could be added to enhance accessibility further.
+
+## Notes
+
+- The component automatically handles the active state of tabs.
+- Pro-only tabs are visually distinct and non-interactive for non-Pro users.
+- The component uses icons from the @iconify/react library for the tab indicators.
+

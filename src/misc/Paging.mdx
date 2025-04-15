@@ -1,0 +1,46 @@
+{/* Paging.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as PagingStories from './Paging.stories';
+
+<Meta of={PagingStories} />
+
+# NekoPaging
+
+The NekoPaging component provides a styled pagination bar for navigating through large datasets in your application. It displays the current page, total items, and navigation controls.
+
+## Basic Usage
+
+```jsx
+<NekoPaging
+  currentPage={2}
+  total={100}
+  limit={10}
+  onClick={(page) => console.log('Navigate to page', page)}
+/>
+```
+
+This renders a pagination bar showing page 2 of 100 results (assuming 10 items per page). Clicking the navigation controls or the current page number (if editable) triggers the onClick function with the selected page number.
+
+## Props
+
+<Controls />
+
+## Functionality
+
+- Displays the current page number and total number of items.
+- Provides navigation buttons to move to the first, previous, next, and last pages (when applicable).
+- Allows clicking the current page number (if onCurrentPageChanged prop is provided) to edit the current page value.
+- Supports infinite scrolling scenarios where the total number of items is unknown.
+- Handles edge cases like navigating to the first/last page when already on those pages or attempting to navigate to invalid page numbers.
+
+## Customization
+
+- The component offers a controllerText prop to customize the displayed text within the navigation controls.
+- You can override styles in your global CSS or scoped styles to adjust the appearance of the pagination bar.
+
+## Usage Considerations
+
+- The component is designed for situations with large datasets that require pagination for navigation.
+- Consider the overall information density and user experience when deciding whether to use a pagination bar or alternative navigation methods.

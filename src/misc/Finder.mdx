@@ -1,0 +1,52 @@
+{/* Finder.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as FinderStories from './Finder.stories';
+
+<Meta of={FinderStories} />
+
+# NekoFinder & NekoFinderItem
+
+The NekoFinder component provides a hierarchical navigation element with expandable sections for organizing content within your application's UI. NekoFinderItem represents individual items within the hierarchy.
+
+## Basic Usage
+
+```jsx
+<NekoFinder>
+  <NekoFinderItem title="Documents" icon="folder">
+    <NekoFinderItem title="Subfolder 1" />
+    <NekoFinderItem title="Subfolder 2" />
+  </NekoFinderItem>
+  <NekoFinderItem title="Images" icon="gallery" />
+</NekoFinder>
+```
+
+This renders a NekoFinder with two items: a folder named "Documents" containing subfolders, and an item named "Images" with a gallery icon.
+
+## Props
+
+<Controls />
+
+## Collapsible Sections
+
+NekoFinderItem can represent folders or sections that expand to reveal nested content. Clicking on a folder icon or the title of a collapsible section toggles its expanded state.
+
+## Customization Options
+
+Both NekoFinder and NekoFinderItem offer customization options:
+
+- **NekoFinder**:
+  - **chevron**: You can control whether to display chevron icons for expandable sections.
+- **NekoFinderItem**:
+  - **icon**: You can customize the icon displayed next to the title using either icon components or pre-defined options like "gallery".
+  - **title**: The title displayed for the item.
+  - **isExpanded**: You can control the initial expanded state of the item.
+
+## Nesting Items
+
+NekoFinderItem components can be nested within other NekoFinderItem components to create a hierarchical structure. This allows you to represent complex folder structures and organize content effectively.
+
+## Drag and Drop (Optional)
+
+The provided code includes props for drag and drop functionality on NekoFinderItem. You can implement custom logic to handle drag and drop interactions within your application.

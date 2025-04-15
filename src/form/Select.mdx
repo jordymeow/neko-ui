@@ -1,0 +1,116 @@
+{/* Select.mdx */}
+
+import { Meta, Controls } from '@storybook/blocks';
+
+import * as SelectStories from './Select.stories';
+
+<Meta of={SelectStories} />
+
+# NekoSelect Component
+
+The NekoSelect component is a versatile select input for React applications. It can function as either a radio button group or a dropdown select, offering enhanced customization and functionality.
+
+## Overview
+
+NekoSelect provides two main modes of operation:
+1. Radio button group (default)
+2. Dropdown select (when `scrolldown` prop is true)
+
+It offers features such as:
+- Custom styling
+- Icon support
+- Description text
+- Pro-only options
+- Text filtering for dropdown mode
+- Busy state indication
+
+## Usage
+
+To use NekoSelect, import both NekoSelect and NekoOption components:
+
+```jsx
+import { NekoSelect, NekoOption } from './path-to-neko-ui';
+
+function MyComponent() {
+  const [selectedValue, setSelectedValue] = useState('option1');
+
+  return (
+    <NekoSelect
+      name="mySelect"
+      value={selectedValue} 
+      onChange={(newValue) => setSelectedValue(newValue)}
+      scrolldown
+    >
+      <NekoOption value="option1" label="Option 1" />
+      <NekoOption value="option2" label="Option 2" />
+      <NekoOption value="option3" label="Option 3" />
+    </NekoSelect>
+  );
+}
+```
+
+## Props
+
+<Controls />
+
+## Features
+
+### Radio Button Group vs Dropdown
+
+By default, NekoSelect renders as a radio button group. To switch to dropdown mode:
+
+```jsx
+<NekoSelect scrolldown>
+  {/* options */}
+</NekoSelect>
+```
+
+### Icons
+
+Add icons to options:
+
+```jsx
+<NekoOption value="option1" label="Option 1" icon="icon-name" iconSize={24} />
+```
+
+### Descriptions
+
+Add descriptions to options or the entire select:
+
+```jsx
+<NekoSelect description="Select an option">
+  <NekoOption value="option1" label="Option 1" description="Description for Option 1" />
+</NekoSelect>
+```
+
+### Pro-Only Options
+
+Mark options as pro-only:
+
+```jsx
+<NekoOption value="proOption" label="Pro Feature" requirePro />
+```
+
+### Text Filtering
+
+Enable text filtering for dropdown mode:
+
+```jsx
+<NekoSelect scrolldown textFiltering>
+  {/* options */}
+</NekoSelect>
+```
+
+### Busy State
+
+Show a loading spinner:
+
+```jsx
+<NekoSelect isBusy>
+  {/* options */}
+</NekoSelect>
+```
+
+## Accessibility
+
+The component maintains standard select and radio button accessibility features. It provides visual feedback for disabled and busy states, and supports keyboard navigation in dropdown mode.
