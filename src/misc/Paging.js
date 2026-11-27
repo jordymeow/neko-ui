@@ -1,14 +1,8 @@
-// Previous: none
-// Current: 0.0.0
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
-import { Icon } from '@iconify/react';
-import chevronDoubleLeft from '@iconify/icons-mdi/chevron-double-left';
-import chevronLeft from '@iconify/icons-mdi/chevron-left';
-import chevronDoubleRight from '@iconify/icons-mdi/chevron-double-right';
-import chevronRight from '@iconify/icons-mdi/chevron-right';
+import { ChevronsLeft, ChevronLeft, ChevronsRight, ChevronRight } from 'lucide-react';
+import { ICON_SIZES } from '../common/PresetIcons';
 
 const PagingContainer = Styled.div`
   align-items: center;
@@ -16,11 +10,6 @@ const PagingContainer = Styled.div`
   user-select: none;
 
   .neko-paging-text {
-    font-family: var(--neko-font-family);
-    font-style: normal;
-    font-weight: normal;
-    font-size: 15px;
-    line-height: 14px;
     margin-right: 15px;
   }
 
@@ -35,13 +24,19 @@ const PagingContainer = Styled.div`
 
     .nako-paging-controller-icon {
       background-color: white;
-      border-radius: 100%;
+      border-radius: 50%;
       cursor: pointer;
       margin-right: 2px;
-      height: 22px;
-      width: 22px;
+      height: 18px;
+      width: 18px;
+      min-width: 18px;
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: transform 0.1s ease-in;
       box-sizing: border-box;
+      flex-shrink: 0;
 
       :last-child {
         margin-right: 0;
@@ -66,23 +61,63 @@ const PagingContainer = Styled.div`
       font-style: normal;
       font-weight: normal;
       font-size: var(--neko-font-size);
-      margin: 0 40px;
+      margin: 0 10px;
       user-select: none;
+      white-space: nowrap;
+      
+      @media (min-width: 360px) {
+        margin: 0 20px;
+      }
+      
+      @media (min-width: 480px) {
+        margin: 0 40px;
+      }
     }
 
     span.neko-paging-current-page {
       cursor: pointer;
-      text-decoration: underline;
+      display: inline-block;
+      padding: 0 6px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.2);
+      font-weight: 600;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.35);
+      }
     }
 
+    /* Explicit values on every property so wp-admin input styles can't leak in */
     input.neko-paging-current-page {
-      width: 1.5rem;
+      user-select: text;
+      -webkit-user-select: text;
+      box-sizing: content-box;
+      height: 18px;
+      min-height: 0;
+      line-height: 18px;
+      margin: 0;
+      padding: 0 6px;
+      border: none;
+      border-radius: 9px;
+      background: white;
+      color: var(--neko-main-color);
+      font: inherit;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+      outline: none;
+      vertical-align: baseline;
     }
   }
 `;
 
+/**
+ * @param {number} currentPage Current page
+ * @param {number} limit Items per page
+ */
 const StyledNekoPaging = props => {
-  const { currentPage, limit = 0, onClick, total = 0, onCurrentPageChanged, infinite = false, maxInfinite = false, controllerText } = props;
+  const { currentPage, limit = 0, onClick, total = 0, onCurrentPageChanged, infinite = false, maxInfinite = false, controllerText, compact = false } = props;
   const isEditable = !!onCurrentPageChanged;
   const maxPage = useMemo(() => {
     if (infinite || maxInfinite) return 0;
@@ -91,6 +126,7 @@ const StyledNekoPaging = props => {
   const prevIconClassName = `nako-paging-controller-icon ${!infinite && currentPage === 1 ? 'disabled' : ''}`;
   const nextIconClassName = `nako-paging-controller-icon ${(!infinite && !maxInfinite) && currentPage === maxPage ? 'disabled' : ''}`;
   const [ showCurrentPageInput, setShowCurrentPageInput ] = useState(false);
+  const [useCompactMode, setUseCompactMode] = useState(compact);
 
   const onClickHandle = (page) => {
     setShowCurrentPageInput(false);
@@ -106,39 +142,46 @@ const StyledNekoPaging = props => {
     return numberPage > maxPage ? maxPage : (numberPage < 1 ? 1 : numberPage);
   }
 
+  // Single commit path: Enter blurs, Escape restores the value then blurs.
   const onBlur = (e) => {
-    const page = e.target.value;
-
-    if (!isNaN(page)) {
-      onCurrentPageChanged(getValidPage(page));
+    const page = e.target.value.trim();
+    if (page !== '' && !isNaN(page)) {
+      const valid = getValidPage(page);
+      if (valid !== currentPage) onCurrentPageChanged(valid);
     }
     setShowCurrentPageInput(false);
   }
 
-  const onKeyPress = (e) => {
+  const onKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const page = e.target.value;
-      if (!isNaN(page)) {
-        onCurrentPageChanged(getValidPage(page));
-      }
-      setShowCurrentPageInput(false);
+      e.target.blur();
+    }
+    else if (e.key === 'Escape') {
+      e.target.value = currentPage;
+      e.target.blur();
     }
   };
 
   const currentPageJsx = useMemo(() => {
     if (!showCurrentPageInput) {
       const onClick = () => {
-        if (!isEditable) {
+        // Don't allow editing if there's only 1 page or if not editable
+        if (!isEditable || maxPage === 1) {
           return;
         }
         setShowCurrentPageInput(true);
       }
-      return <span className={isEditable ? 'neko-paging-current-page' : ''} onClick={onClick}>{currentPage}</span>;
+      // Only show as clickable if editable AND there's more than 1 page
+      const isClickable = isEditable && maxPage > 1;
+      return <span className={isClickable ? 'neko-paging-current-page' : ''} onClick={onClick}
+        title={isClickable ? 'Go to page…' : undefined}>{currentPage}</span>;
     }
-    return <input autoFocus type="text" className={isEditable ? 'neko-paging-current-page' : ''} 
-      defaultValue={currentPage} onBlur={onBlur} onKeyDown={onKeyPress} />;
-  }, [currentPage, showCurrentPageInput, onCurrentPageChanged]);
+    return <input autoFocus type="text" inputMode="numeric" className="neko-paging-current-page"
+      aria-label="Go to page" defaultValue={currentPage} onFocus={(e) => e.target.select()}
+      style={{ width: `${Math.max(String(maxPage || currentPage).length, 2)}ch` }}
+      onBlur={onBlur} onKeyDown={onKeyDown} />;
+  }, [currentPage, showCurrentPageInput, onCurrentPageChanged, maxPage]);
 
   const onControllerClick = (e) => {
     if (!showCurrentPageInput || e.target !== e.currentTarget) return;
@@ -146,35 +189,59 @@ const StyledNekoPaging = props => {
     setShowCurrentPageInput(false);
   }
 
+  const containerRef = useRef(null);
+  
+  // Auto-detect if we need compact mode based on container width
+  useEffect(() => {
+    const checkWidth = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth;
+        // Use compact mode if container is less than 280px wide
+        setUseCompactMode(compact || width < 280);
+      }
+    };
+    
+    checkWidth();
+    window.addEventListener('resize', checkWidth);
+    return () => window.removeEventListener('resize', checkWidth);
+  }, [compact]);
+
   return (
-    <PagingContainer className='nako-paging'>
+    <PagingContainer className='neko-paging' ref={containerRef}>
 
       {!!total && <span className="neko-paging-text">{total} result{total !== 1 ? 's' : ''}</span>}
 
-      <div className="neko-paging-controller" onClick={onControllerClick}>
-        {(!infinite && !maxInfinite) && <Icon icon={chevronDoubleLeft}
+      {/* Arrows around "1/1" do nothing, so a single page only shows the results count. */}
+      {(infinite || maxInfinite || maxPage > 1) && <div className="neko-paging-controller" onClick={onControllerClick}>
+        {(!infinite && !maxInfinite) && <ChevronsLeft
           className={prevIconClassName}
           onClick={() => onClickHandle(1)}
+          size={ICON_SIZES.chevron}
         />}
-        <Icon icon={chevronLeft}
+        <ChevronLeft
           className={prevIconClassName}
           onClick={() => onClickHandle(currentPage - 1)}
+          size={ICON_SIZES.chevron}
         />
         <p className="nako-paging-controller-text" onClick={onControllerClick}>
           {!!controllerText
             ? controllerText
-            : <>Page {currentPageJsx} of {maxPage}</>
+            : useCompactMode 
+              ? <>{currentPageJsx}/{maxPage}</>
+              : <>Page {currentPageJsx} of {maxPage}</>
           }
         </p>
-        <Icon icon={chevronRight}
+        <ChevronRight
           className={nextIconClassName}
           onClick={() => onClickHandle(currentPage + 1)}
+          size={ICON_SIZES.chevron}
         />
-        {(!infinite && !maxInfinite) && <Icon icon={chevronDoubleRight}
+        {(!infinite && !maxInfinite) && <ChevronsRight
           className={nextIconClassName}
           onClick={() => onClickHandle(maxPage)}
+          size={ICON_SIZES.chevron}
         />}
-      </div>
+      </div>}
 
     </PagingContainer>
   );

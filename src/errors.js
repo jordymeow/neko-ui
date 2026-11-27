@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 class NekoError {
 
   constructor(message, code = '', url = null, body = null, debug = {} ) {

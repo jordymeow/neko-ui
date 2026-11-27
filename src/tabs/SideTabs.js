@@ -1,13 +1,8 @@
-// Previous: none
-// Current: 0.0.0
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
 import { ProOnly } from '../label/ProOnly';
-import { Icon } from '@iconify/react';
-import chevronDown from '@iconify/icons-mdi/chevron-down';
-import chevronRight from '@iconify/icons-mdi/chevron-right';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useClasses } from '../hooks';
 
 const TabContainer = Styled.div`
@@ -20,6 +15,9 @@ const Tab = Styled.div`
   cursor: pointer;
   display: flex;
   padding: 2px 3px 2px 19px;
+  position: relative;     /* for the hover accent bar */
+  transition: filter 140ms ease;
+  will-change: filter;
 
   &.disabled {
     background-color: rgba(var(--neko-yellow-rgb), 0.25);
@@ -40,6 +38,31 @@ const Tab = Styled.div`
     height: 36px;
     width: 36px;
   }
+
+  &:not(.disabled):hover { filter: brightness(1.04); }
+
+  /* Slim left accent bar reveal on hover */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 20%;
+    width: 2px;
+    height: 60%;
+    background: currentColor;
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: center top;
+    transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 140ms ease;
+    pointer-events: none;
+  }
+
+  &:not(.disabled):hover::before {
+    opacity: 0.65;
+    transform: scaleY(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) { transition: none; }
 `;
 
 const TabContent = Styled.div`
@@ -52,7 +75,11 @@ const TabContent = Styled.div`
   }
 `;
 
+/**
+ * Need to use with NecoTab
+ */
 const StyledNekoSideTabs = props => {
+
   const [activeTabIndex, setIsActiveTabIndex] = React.useState(props.activeTabIndex);
 
   const tabAttributes = React.Children.map(props.children, (child, i) => {
@@ -61,7 +88,8 @@ const StyledNekoSideTabs = props => {
     let key = "tab-" + (i + 1);
     if (child.props.key) {
       key = child.props.key;
-    } else if (typeof child.props.title === 'string') {
+    }
+    else if (typeof child.props.title === 'string') {
       key = child.props.title.toLowerCase().replace(/[^a-z0-9 ]/gi, '');
       key = key.replace(/ /g, '-');
     }
@@ -96,7 +124,7 @@ const StyledNekoSideTabs = props => {
     <TabContainer className='neko-side-tabs'>
       {tabAttributes.map((attr, i) => {
         const tabClassNames = ['neko-side-tab', i === activeTabIndex ? 'active' : '', attr.requirePro ? 'disabled' : ''].filter(v => v.length > 0);
-        return (<React.Fragment key={attr.key + '-frag'}>
+        return (<React.Fragment>
           <Tab
             key={attr.key}
             className={tabClassNames}
@@ -109,11 +137,11 @@ const StyledNekoSideTabs = props => {
               <ProOnly className="inline" show={attr.requirePro} />
             </p>
             {attr.rightActions === null
-              ? <Icon icon={i === activeTabIndex ? chevronDown : chevronRight } className="neko-side-tab-icon" />
+              ? (i === activeTabIndex ? <ChevronDown className="neko-side-tab-icon" /> : <ChevronRight className="neko-side-tab-icon" />)
               : (
                 i === activeTabIndex
                   ? <div style={{ marginLeft: 'auto' }}>{attr.rightActions}</div>
-                  : <Icon icon={chevronRight} className="neko-side-tab-icon" />
+                  : <ChevronRight className="neko-side-tab-icon" />
               )
             }
           </Tab>
@@ -124,7 +152,13 @@ const StyledNekoSideTabs = props => {
   );
 };
 
+
+/**
+ * @oaram {string} title
+ * @param {bool} isActive
+ */
 const StyledNekoSideTab = props => {
+
   const { children, isActive = false, className } = props;
   const classNames = useClasses('neko-side-tab-content', className, { active: isActive });
 

@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import Styled from 'styled-components';
 
 const Select = Styled.div`
@@ -9,14 +6,15 @@ const Select = Styled.div`
   user-select: none;
   cursor: pointer;
   transition: background 0.3s ease, color 0.3s ease;
-  color: black;
+  color: var(--neko-font-color);
   box-sizing: border-box;
 
   .neko-select-option-label {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
-    height: 100%;
-    display: flex;
-    align-items: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   &.show-options {
@@ -24,32 +22,41 @@ const Select = Styled.div`
   }
 
   &[data-is-disabled=true], &.disabled {
-    cursor: none;
+    cursor: not-allowed;
     pointer-events: none;
     color: var(--neko-gray-60);
+    transition: opacity 0.3s ease, border-color 0.3s ease;
 
     .neko-select-option {
       pointer-events: none;
       background: var(--neko-gray-98);
-      border-color: var(--neko-gray-60);
+      border-color: var(--neko-input-border);
+    }
+
+    .neko-select-option .rightContent .neko-select-chevron {
+      color: var(--neko-gray-60);
     }
   }
 
-  &.neko-dropdown-up {
-    background: red !important;
-  }
+  &.neko-dropdown-up {}
 `;
 
 const SelectedOption = Styled.div`
   align-items: center;
   background-color: var(--neko-input-background);
   border: 1.5px solid var(--neko-input-border);
-  border-radius: 8px;
+  border-radius: var(--neko-radius-md);
   display: flex;
-  font-size: var(--neko-font-size); 
+  font-size: var(--neko-font-size);
   padding: 0 5px 0 10px;
   box-sizing: border-box;
-  height: 30px;
+  height: var(--neko-control-height);
+  transition: opacity 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+  
+  &[data-is-disabled=true], &.disabled {
+    border-color: var(--neko-input-border);
+    opacity: 0.6;
+  }
 
   &.isBusy {
     padding-left: 5px;
@@ -60,6 +67,26 @@ const SelectedOption = Styled.div`
     display: flex;
     margin-left: auto;
   }
+
+  /* Chevron hover animation */
+  .rightContent .neko-chevron-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center;
+    transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform;
+  }
+
+  &:hover .rightContent .neko-chevron-wrap { transform: scale(1.06); }
+
+  /* Chevron color transition */
+  .rightContent .neko-select-chevron {
+    color: var(--neko-font-color);
+    transition: color 150ms ease;
+  }
+
+  &:hover .rightContent .neko-select-chevron { color: var(--neko-main-color); }
 `;
 
 const Description = Styled.div`
@@ -68,6 +95,13 @@ const Description = Styled.div`
   font-size: var(--neko-small-font-size);
   line-height: 14px;
   color: var(--neko-gray-60);
+
+  code {
+    font-size: 9px;
+    background: #016fba14;
+    border-radius: 5px;
+    padding: 2px 4px;
+  }
 
   * {
     line-height: inherit;
@@ -79,12 +113,16 @@ const Options = Styled.div`
   position: absolute;
   left: 0;
   z-index: 9999;
-  border-radius: 8px;
+  border-radius: var(--neko-radius-md);
   overflow: hidden;
   min-width: 100%;
   width: max-content;
   max-width: 100vw;
   top: 100%;
+  margin-top: 4px;
+  background: var(--neko-white);
+  border: 1px solid var(--neko-input-border);
+  box-shadow: var(--neko-shadow-lg);
   
   &.neko-dropdown-up {
     top: auto;
@@ -100,17 +138,36 @@ const OptionsContainer = Styled.div`
   overflow-y: auto;
   overflow-x: hidden;
   max-height: 320px;
-  background-color: var(--neko-main-color-alternative);
+  background-color: var(--neko-white);
+
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+  }
 
   &.neko-select-filter-container {
-    background-color: var(--neko-main-color-alternative);
+    background-color: var(--neko-white);
+    position: relative;
     padding: 6px;
-    margin-top: 2px;
-    overflow: hidden;
-
-    div {
-      overflow: hidden;
-    }
+    margin-top: 0;
   }
 `;
 
@@ -157,14 +214,39 @@ const RadioOption = Styled.div`
 `;
 
 const SelectOption = Styled.div`
-  background-color: var(--neko-main-color-alternative);
+  background-color: var(--neko-white);
   cursor: pointer;
   font-size: var(--neko-font-size); 
-  padding: 5.5px 13px;
+  padding: 7px 13px;
+  transition: background-color 0.12s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -60%;
+    width: 120%;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-120%) skewX(-15deg);
+  }
+
+  @keyframes nekoOptionGloss {
+    0% { opacity: 0; transform: translateX(-120%) skewX(-15deg); }
+    20% { opacity: .35; }
+    100% { opacity: 0; transform: translateX(120%) skewX(-15deg); }
+  }
 
   &:hover {
-    filter: brightness(80%);
+    background-color: var(--neko-main-color-95);
+    box-shadow: var(--neko-shadow-xs);
   }
+
+  &:hover::after { animation: nekoOptionGloss 650ms ease; }
 
   input {
     display: none;
@@ -172,7 +254,7 @@ const SelectOption = Styled.div`
 
   .option {
     align-items: center;
-    color: var(--neko-white);
+    color: var(--neko-font-color);
     display: flex;
     justify-content: space-between;
     font-size: var(--neko-font-size); 
@@ -185,11 +267,11 @@ const SelectOption = Styled.div`
   }
 
   &.disabled {
-    background-color: rgb(224 156 54);
+    background-color: var(--neko-gray-98);
     pointer-events: none;
 
     .option {
-      color: rgb(255 255 255 / 35%);
+      color: var(--neko-gray-60);
     }
   }
 `;

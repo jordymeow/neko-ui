@@ -1,10 +1,12 @@
-// Previous: none
-// Current: 0.0.0
-
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import PQueue from 'p-queue';
 import { sleep } from './helpers';
 import { NekoModal, NekoButton } from '../index';
+
+// Sometimes, we need to align or place elements depending on other dynamic elements.
+// This hook returns a ref (which should be assign to a component), and the size of
+// this element every time it changes.
+// TODO: We should use CSS container queries instead (https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_container_queries). As of 2023, it seems quite well supported: https://caniuse.com/css-container-queries.
 
 const useComponentSize = () => {
   const ref = useRef();
@@ -12,37 +14,38 @@ const useComponentSize = () => {
 
   useEffect(() => {
     const observer = new ResizeObserver((entries) => {
-      let element = entries[0];
-      if (element.contentRect) {
+      const entry = entries[0];
+      if (entry?.contentRect) {
         setSize({
-          width: element.contentRect.width,
-          height: element.contentRect.height,
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
         });
       }
     });
-    if (ref.current) {
-      observer.observe(ref.current);
-      return () => {
-        if (ref.current) {
-          observer.unobserve(ref.current);
-        }
-      };
-    }
-  }, [ref]);
 
-  return { ref, width: size.width || 0, height: size.height || 0 };
+    const el = ref.current;
+    if (el) observer.observe(el);
+    return () => {
+      if (el) observer.unobserve(el);
+    };
+  }, []);
+
+  return { ref, width: size.width ? size.width : 0, height: size.height ? size.height : 0 };
 };
+
+
+// If a click is made outside the component, then the function onOutsideClick is called.
+// This function returns a ref which needs to be assigned to the component.
 
 const useOutsideClick = (onOutsideClick, specifiedRef) => {
   const componentRef = useRef();
-  const realComponentRefs = specifiedRef
-    ? (Array.isArray(specifiedRef) ? specifiedRef : [specifiedRef])
-    : [componentRef];
+  const realComponentRefs = specifiedRef ? (Array.isArray(specifiedRef) ? specifiedRef : [specifiedRef]) : [componentRef];
 
   const handleOutsideClick = (e) => {
     if (!onOutsideClick) {
       return;
     }
+
     let inside = false;
     for (const ref of realComponentRefs) {
       if (ref?.current && ref.current.contains(e.target)) {
@@ -50,6 +53,7 @@ const useOutsideClick = (onOutsideClick, specifiedRef) => {
         break;
       }
     }
+
     if (!inside) {
       onOutsideClick();
     }
@@ -58,14 +62,19 @@ const useOutsideClick = (onOutsideClick, specifiedRef) => {
   useEffect(() => {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => { document.removeEventListener("mousedown", handleOutsideClick); };
-  }, []);
+  }, [onOutsideClick, specifiedRef]);
 
   return componentRef;
 };
 
+
+// This hook allows calling many requests without having too many of them
+// running concurrently.
+
 let GlobalQueue = null;
 
 const useNekoGlobalQueue = (params = {}) => {
+
   if (!GlobalQueue) {
     let { concurrency = 2 } = params;
     GlobalQueue = new PQueue({ concurrency, autoStart: true });
@@ -73,10 +82,13 @@ const useNekoGlobalQueue = (params = {}) => {
 
   const runTask = async (func) => {
     return await GlobalQueue.add(func);
-  };
+  }
 
   return { runTask };
 };
+
+// This hook handles batch of asynchronous requests, and provide everything
+// the NekoProgress might need.
 
 const isDebug = false;
 
@@ -97,6 +109,8 @@ const useNekoTasks = ({ i18n = null, onStop = () => {} } = {}) => {
   const [success, setSuccess] = useState(false);
   const [value, setValue] = useState(0);
 
+  // --- HOISTED FUNCTION DECLARATIONS ---
+
   async function doExecuteTask(task, isRetry = false) {
     try {
       if (isRetry) {
@@ -109,6 +123,7 @@ const useNekoTasks = ({ i18n = null, onStop = () => {} } = {}) => {
       if (res?.success === false) {
         throw new Error(res.message);
       }
+      // If a retry succeeded, ensure PQueue continues
       if (isRetry) {
         refRetriesLeft.current = refRetries.current;
         uploadQueue.start();
@@ -121,6 +136,7 @@ const useNekoTasks = ({ i18n = null, onStop = () => {} } = {}) => {
         refErrors.current++;
         if (!refSkip.current) {
           pause();
+          // Attempt auto-retry if any retries remain
           if (refRetriesLeft.current > 0) {
             await doRetry();
             return;
@@ -142,7 +158,8 @@ const useNekoTasks = ({ i18n = null, onStop = () => {} } = {}) => {
     setPaused(false);
 
     if (refRetriesLeft.current > 0) {
-      if (refRetriesLeft.current <= refRetries.current) {
+      // Exponential-ish backoff (or you can do your own logic):
+      if (refRetriesLeft.current < refRetries.current) {
         let retriesUsed = refRetries.current - refRetriesLeft.current;
         const sleepFor = retriesUsed * 5000;
         if (isDebug) {
@@ -154,10 +171,15 @@ const useNekoTasks = ({ i18n = null, onStop = () => {} } = {}) => {
       }
       refRetriesLeft.current--;
     }
+
+    // If we still have the last failing task, retry it:
     if (refCurrentTask.current) {
       await doExecuteTask(refCurrentTask.current, true);
     }
   }
+
+  // --- useCallback WRAPPERS ---
+  // (Optional: if you really need stable references to pass down)
 
   const pause = useCallback(() => {
     if (isDebug) console.log('[useNekoTasks] Pause.');
@@ -166,14 +188,18 @@ const useNekoTasks = ({ i18n = null, onStop = () => {} } = {}) => {
   }, [uploadQueue]);
 
   const executeTask = useCallback(doExecuteTask, [
-    controller,
+    controller,  // or controller.signal if you prefer
     pause,
     uploadQueue
+    // do *not* include `retry` here to avoid circular re-renders
   ]);
 
   const retry = useCallback(doRetry, [
     executeTask
+    // same note here about cyclical references
   ]);
+
+  // --- REST OF YOUR HOOK CODE ---
 
   const reset = useCallback(async () => {
     const newController = new AbortController();
@@ -255,6 +281,7 @@ const useNekoTasks = ({ i18n = null, onStop = () => {} } = {}) => {
     return refErrors.current;
   }, []);
 
+  // If you rely on i18n and NekoModal, your existing code probably remains:
   const TasksErrorModal = useMemo(
     () => (
       <NekoModal
@@ -319,33 +346,34 @@ const useNekoTasks = ({ i18n = null, onStop = () => {} } = {}) => {
 }
 
 const useKeyboardEvent = () => {
-  const [pressShift, setPressShift] = useState(false);
-  const [pressControl, setPressControl] = useState(false);
+	const [ pressShift, setPressShift ] = useState(false);
+  const [ pressControl, setPressControl ] = useState(false);
 
-  const keydownFunction = useCallback((e) => {
-    setPressShift(e.shiftKey);
+	const keydownFunction = useCallback((e) => {
+		setPressShift(e.shiftKey);
     setPressControl(e.ctrlKey || e.metaKey);
-  }, []);
-  const keyupFunction = useCallback(() => {
-    setPressShift(false);
+	}, []);
+	const keyupFunction = useCallback(() => {
+		setPressShift(false);
     setPressControl(false);
-  }, []);
+	}, []);
 
-  useEffect(() => {
-    document.addEventListener("keydown", keydownFunction, false);
-    document.addEventListener("keyup", keyupFunction, false);
-    return () => {
-      document.removeEventListener("keydown", keydownFunction, false);
-      document.removeEventListener("keyup", keyupFunction, false);
-    };
-  }, []);
+	useEffect(() => {
+		document.addEventListener("keydown", keydownFunction, false);
+		document.addEventListener("keyup", keyupFunction, false);
 
-  return { pressShift, pressControl };
-};
+		return () => {
+		document.removeEventListener("keydown", keydownFunction, false);
+		document.removeEventListener("keyup", keyupFunction, false);
+		}
+	}, []);
+
+	return { pressShift, pressControl };
+}
 
 const useFocusOverlay = (elementRef, shouldApply, styles = { opacity: 0.5 },
   elementStyles = { boxShadow: '0px 0px 20px rgb(0 0 0 / 10%)' }) => {
-  const [isApplied, setIsApplied] = useState(false);
+  const [ isApplied, setIsApplied ] = useState(false);
 
   useEffect(() => {
     if (!elementRef.current || shouldApply === isApplied) {
@@ -357,9 +385,13 @@ const useFocusOverlay = (elementRef, shouldApply, styles = { opacity: 0.5 },
           element.style.removeProperty(styleKey);
         });
       });
+      // Object.keys(elementStyles).forEach(styleKey => {
+      //   elementRef.current.style.removeProperty(styleKey);
+      // });
       setIsApplied(false);
       return;
-    } else {
+    }
+    else {
       Array.from(document.querySelectorAll('*')).forEach(element => {
         if (element === elementRef.current || element.contains(elementRef.current) || elementRef.current.contains(element)) {
           return;
@@ -367,10 +399,14 @@ const useFocusOverlay = (elementRef, shouldApply, styles = { opacity: 0.5 },
         Object.keys(styles).forEach(styleKey => {
           element.style[styleKey] = styles[styleKey];
         });
-      });
+      });      
+      // Object.keys(elementStyles).forEach(styleKey => {     
+      //   elementRef.current.style[styleKey] = elementStyles[styleKey];
+      // });
       setIsApplied(true);
     }
-  }, [elementRef, styles, shouldApply, isApplied]);
+
+  }, [elementRef, styles, elementStyles, shouldApply, isApplied]);
 };
 
 const useInterval = (callback, delay) => {
@@ -398,7 +434,8 @@ const useClasses = (...args) => {
       if (typeof arg === 'string') {
         const splitClasses = arg.trim().split(' ').filter(v => v.length > 0);
         splitClasses.forEach((v) => className.push(v));
-      } else if (typeof arg === 'object') {
+      }
+      else if (typeof arg === 'object') {
         const keys = Object.keys(arg);
         keys.forEach(key => {
           if (arg[key]) {
@@ -409,35 +446,9 @@ const useClasses = (...args) => {
     });
     return className.join(' ');
   }, [args]);
-};
-
-function getReferenceRect(targetRef, popper) {
-  if (!targetRef || !popper) return null;
-
-  const rect = targetRef.getBoundingClientRect();
-  const popperHeight = popper.offsetHeight;
-
-  const viewportHeight = window.innerHeight;
-
-  const spaceBelow = viewportHeight - rect.bottom;
-  const spaceAbove = rect.top;
-
-  let top;
-  if (spaceBelow >= popperHeight) {
-    top = rect.bottom + window.scrollY;
-  } else if (spaceAbove > popperHeight) {
-    top = rect.top + window.scrollY - popperHeight;
-  } else {
-    top = rect.bottom + window.scrollY;
-  }
-
-  const width = rect.width;
-  const left = rect.left + window.scrollX;
-
-  console.log('getReferenceRect', { targetRef, popper, width, left, top });
-
-  return { width, left, top };
 }
+
+// getReferenceRect: removed (not used). Keep implementation in git history if needed.
 
 const useNekoDebounce = (fn, delay) => {
   const timeoutRef = useRef(null);
@@ -460,5 +471,16 @@ const useNekoDebounce = (fn, delay) => {
   }, [fn, delay]);
 };
 
+// Each component used to console.log this on every mount, flooding the console.
+const warnedIsBusy = new Set();
+const useDeprecatedIsBusy = (isBusy, componentName) => {
+  useEffect(() => {
+    if (!isBusy || warnedIsBusy.has(componentName)) return;
+    warnedIsBusy.add(componentName);
+    console.warn(`${componentName}: The "isBusy" prop is deprecated. Please use "busy" instead.`);
+  }, [isBusy, componentName]);
+};
+
 export { useOutsideClick, useNekoGlobalQueue, useNekoTasks, useNekoDebounce,
-  useComponentSize, useKeyboardEvent, useFocusOverlay, useInterval, useClasses};
+  useComponentSize, useKeyboardEvent, useFocusOverlay, useInterval, useClasses,
+  useDeprecatedIsBusy };

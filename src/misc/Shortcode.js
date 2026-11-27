@@ -1,38 +1,120 @@
-// Previous: none
-// Current: 0.0.0
-
-const { useState } = wp.element;
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { NekoSpacer } from '../layout/Spacer';
 
-const shortcodeStyle = {
+const containerStyle = {
   display: 'flex',
   alignItems: 'center',
-  background: '#f8fcff',
-  height: 26,
-  color: '#779bb8',
-  margin: 0,
-  padding: '0px 10px',
-  fontSize: 13,
-  textAlign: 'center',
-  border: '2px solid rgb(210 228 243)',
-  borderRadius: 8,
-  fontFamily: 'system-ui',
-  cursor: 'pointer',
-  whiteSpace: 'pre',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
+  position: 'relative',
   flex: '1 1 auto',
 };
 
-function buildShortcodeString(prefix, params) {
-  const paramStr = Object.entries(params)
-    .map(([key, value]) => `${key}="${value}"`)
-    .join(' ');
-  return `[${prefix}${paramStr ? ' ' + paramStr : ''}]`;
+const shortcodeStyleBase = {
+  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+  color: '#64748b',
+  margin: 0,
+  fontSize: 13,
+  fontWeight: 500,
+  border: '1px solid #e2e8f0',
+  borderRadius: 10,
+  fontFamily: "'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace",
+  overflow: 'hidden',
+  flex: '1 1 auto',
+  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
+  transition: 'all 0.2s ease',
+  letterSpacing: '0',
+};
+
+const shortcodeStyleSingle = {
+  ...shortcodeStyleBase,
+  display: 'flex',
+  alignItems: 'center',
+  height: 36,
+  padding: '0 15px 0 35px',
+  whiteSpace: 'pre',
+  textOverflow: 'ellipsis',
+};
+
+const shortcodeStyleMulti = {
+  ...shortcodeStyleBase,
+  display: 'block',
+  minHeight: 36,
+  padding: '8px 15px 8px 35px',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+  lineHeight: 1.45,
+  /* Slight text indent on wrapped lines so they don't sit under the copy icon. */
+  textIndent: 0,
+};
+
+const copyButtonStyle = {
+  position: 'absolute',
+  left: 5,
+  top: 4,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 28,
+  height: 28,
+  background: 'transparent',
+  border: 'none',
+  borderRadius: 6,
+  cursor: 'pointer',
+  color: '#94a3b8',
+  transition: 'all 0.15s ease',
+  zIndex: 1,
+};
+
+const CopyIcon = ({ copied }) => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ transition: 'all 0.15s ease' }}
+  >
+    {copied ? (
+      <polyline points="20 6 9 17 4 12" />
+    ) : (
+      <>
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      </>
+    )}
+  </svg>
+);
+
+function buildShortcodeString(prefix, params, multiline = false) {
+  const entries = Object.entries(params);
+  if (!entries.length) return `[${prefix}]`;
+  const parts = entries.map(([key, value]) => `${key}="${value}"`);
+  if (multiline) {
+    return `[${prefix}\n  ${parts.join('\n  ')}\n]`;
+  }
+  return `[${prefix} ${parts.join(' ')}]`;
 }
 
+function fallbackCopyToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-9999px';
+  textArea.style.top = '-9999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    return true;
+  } catch {
+    return false;
+  } finally {
+    document.body.removeChild(textArea);
+  }
+}
 
 function highlightQuotes(shortcode, color) {
   const parts = shortcode.split(/(".*?")/);
@@ -40,7 +122,7 @@ function highlightQuotes(shortcode, color) {
   return parts.map((part, idx) => {
     if (/^".*"$/.test(part)) {
       return (
-        <span key={idx} style={{ color: `var(--neko-${color})` }}>
+        <span key={idx} style={{ color: `var(--neko-${color})`, fontWeight: 600 }}>
           {part}
         </span>
       );
@@ -56,43 +138,72 @@ const NekoShortcode = (props) => {
     name = 'shortcode',
     params = { id: 1 },
     color = 'green',
+    multiline = false,
   } = props;
 
-  const [copyMessage, setCopyMessage] = useState('');
-  const [isCopied, setIsCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
-  const rawShortcode = buildShortcodeString(prefix, params);
+  const rawShortcode = buildShortcodeString(prefix, params, multiline);
+  const copyPayload = buildShortcodeString(prefix, params, false);
 
-  const onClickShortcode = async () => {
-    if (!navigator.clipboard) {
-      alert('Clipboard is not enabled (only works with https).');
-      return;
+  const onClickCopy = async (e) => {
+    e.stopPropagation();
+    
+    let success = false;
+    
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(copyPayload);
+        success = true;
+      } catch {
+        success = fallbackCopyToClipboard(copyPayload);
+      }
+    } else {
+      success = fallbackCopyToClipboard(copyPayload);
     }
 
-    await navigator.clipboard.writeText(rawShortcode);
-    setCopyMessage(`Copied ${name} to clipboard!`);
-    setIsCopied(true);
-    setTimeout(() => {
-      setCopyMessage('');
-      if (isCopied) {
-        setIsCopied(false);
-      }
-    }, 1000);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
   };
 
   const highlightedShortcode = highlightQuotes(rawShortcode, color);
 
   return (
-    <>
-      <NekoSpacer />
-      <pre onClick={onClickShortcode} style={shortcodeStyle}>
-        {copyMessage
-          ? copyMessage
-          : highlightedShortcode
-        }
+    <div
+      className="neko-shortcode"
+      style={containerStyle}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <button
+        onClick={onClickCopy}
+        style={{
+          ...copyButtonStyle,
+          background: hovered ? '#f1f5f9' : 'transparent',
+          color: copied ? '#22c55e' : hovered ? '#475569' : '#94a3b8',
+        }}
+        title={copied ? `Copied ${name}!` : `Copy ${name}`}
+        type="button"
+      >
+        <CopyIcon copied={copied} />
+      </button>
+
+      <pre
+        style={{
+          ...(multiline ? shortcodeStyleMulti : shortcodeStyleSingle),
+          borderColor: hovered ? '#cbd5e1' : '#e2e8f0',
+          background: hovered
+            ? 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)'
+            : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        }}
+      >
+        {highlightedShortcode}
       </pre>
-      <NekoSpacer />
-    </>
+      
+    </div>
   );
 };
 
@@ -101,6 +212,7 @@ NekoShortcode.propTypes = {
   name: PropTypes.string,
   params: PropTypes.object,
   color: PropTypes.string,
+  multiline: PropTypes.bool,
 };
 
 export { NekoShortcode };

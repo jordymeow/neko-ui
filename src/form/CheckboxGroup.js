@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
@@ -16,14 +13,14 @@ const StyledNekoCheckboxGroup = Styled(props => {
 
   // Modify child components (Checkboxes)
   const children = React.Children.map(props.children, child => {
-    if (child.props.name) return child; // Do not modify if the child has its own name
+    if (!React.isValidElement(child) || child.props.name) return child; // Skip null/false children and ones with their own name
     return React.cloneElement(child, {
       name: name, // Apply the group's name
       isPro
     });
   });
 
-  return children;
+  return <div className="neko-checkbox-group">{children}</div>;
 })`
 `;
 

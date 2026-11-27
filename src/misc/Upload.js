@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
@@ -16,6 +13,7 @@ const StyledUpload = Styled.div`
   justify-content: center;
   flex-direction: column;
   transition: all 0.25s ease;
+  border-radius: 8px;
 
   &[data-is-disabled=true] {
     svg {
@@ -70,7 +68,7 @@ const NekoUpload = (props) => {
   const [ busy, setBusy ] = useState(false);
 
   useEffect(() => {
-    if (!divEl.current) return;
+    if (!divEl) return;
 
     divEl.current.style.pointerEvents = busy ? 'none' : 'auto';
   }, [divEl, busy])
@@ -78,8 +76,8 @@ const NekoUpload = (props) => {
   const uploadFile = async (files) => {
     setBusy(true);
     const upload = async (file) => {
-      apiConfig.file = file;
-      return await postFetch(apiUrl, apiConfig);
+      const config = { ...apiConfig, file };
+      return await postFetch(apiUrl, config);
     }
     const response = await Promise.all(files.map(async (file) => {
       return await upload(file);
@@ -103,6 +101,7 @@ const NekoUpload = (props) => {
   const onDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (disabled) return;
     setInDropZone(true);
   }
 
@@ -113,6 +112,9 @@ const NekoUpload = (props) => {
   }
 
   const onDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled) return;
     const files = [...e.dataTransfer.files];
     uploadFiles(files, e);
   }
@@ -161,7 +163,7 @@ NekoUpload.propTypes = {
   style : PropTypes.object,
   apiUrl : PropTypes.string,
   apiConfig : PropTypes.object,
-  accept: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+  accept: PropTypes.oneOf([PropTypes.string, PropTypes.array]),
 };
 
 export { NekoUpload };

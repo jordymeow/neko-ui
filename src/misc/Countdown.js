@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
@@ -17,6 +14,7 @@ const CountdownContainer = styled.div`
 `;
 
 const CountdownText = styled.div`
+  /* Center the text within the circle */
   position: absolute;
   top: 50%;
   left: 50%;
@@ -28,15 +26,15 @@ const CountdownText = styled.div`
 
 const NekoCountdown = (props) => {
   const {
-    initialTime = 10,
-    size = 35,
+    initialTime = 10,  // total seconds
+    size = 35,         // diameter in px
     strokeWidth = 7,
     strokeColor = 'var(--neko-blue)',
     onEndCountdown,
   } = props;
 
   const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(true); // Whether the countdown is running
   const intervalId = useRef(null);
 
   const radius = (size - strokeWidth) / 2;
@@ -51,9 +49,11 @@ const NekoCountdown = (props) => {
       return;
     }
 
+
     intervalId.current = setInterval(() => {
       setTimeLeft((prevTime) => {
         if (prevTime <= 1) {
+          // Time is about to reach 0
           clearInterval(intervalId.current);
           onEndCountdown?.();
           setIsActive(false);
@@ -67,6 +67,7 @@ const NekoCountdown = (props) => {
       clearInterval(intervalId.current);
     };
   }, [timeLeft, isActive, onEndCountdown]);
+
 
   const fraction = timeLeft / initialTime;
   const strokeDashoffset = circumference * (1 - fraction);
@@ -83,18 +84,19 @@ const NekoCountdown = (props) => {
 
   return (
     <NekoTooltip text={"Click to " + (isActive ? 'Pause' : 'Restart')}>
-      <CountdownContainer size={size} onClick={handleCountdownClick}>
+        <CountdownContainer className="neko-countdown" size={size} onClick={handleCountdownClick}>
         <svg width={size} height={size}>
-          <circle
+
+            <circle
             stroke="#ddd"
             fill="transparent"
             strokeWidth={strokeWidth}
             r={radius}
             cx={size / 2}
             cy={size / 2}
-          />
+            />
 
-          <circle
+            <circle
             stroke={strokeColor}
             fill="transparent"
             strokeWidth={strokeWidth}
@@ -104,12 +106,12 @@ const NekoCountdown = (props) => {
             cx={size / 2}
             cy={size / 2}
             style={{
-              transition: 'stroke-dashoffset 1s linear',
+                transition: 'stroke-dashoffset 1s linear',
             }}
-          />
+            />
         </svg>
         <CountdownText>{timeLeft}</CountdownText>
-      </CountdownContainer>
+        </CountdownContainer>
     </NekoTooltip>
   );
 };
@@ -121,3 +123,5 @@ NekoCountdown.propTypes = {
   strokeColor: PropTypes.string,
   onEndCountdown: PropTypes.func,
 };
+
+export { NekoCountdown };

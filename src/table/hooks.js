@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import { useMemo, useCallback } from 'react';
 import { useKeyboardEvent } from './../hooks';
 

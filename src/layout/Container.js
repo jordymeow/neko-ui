@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
@@ -30,6 +27,17 @@ const Container = Styled.div`
 
   .neko-container-content {
     padding: 20px 20px;
+
+    a {
+      color: var(--neko-main-color);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-thickness: 1px;
+      transition: color 0.15s ease;
+    }
+    a:hover {
+      color: var(--neko-main-color-10, var(--neko-main-color));
+    }
   }
 `;
 
@@ -38,6 +46,7 @@ const Bar = Styled.div`
   background-color: var(--neko-gray-98);
   display: flex;
   align-items: center;
+  gap: 8px;
   padding: 8px 10px;
 
   &.align-right {

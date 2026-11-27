@@ -1,139 +1,88 @@
-// Previous: none
-// Current: 0.0.0
-
-import React, { useState, useEffect } from 'react';
+import React, { useId } from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
 
-const StyledSection = Styled.section`
-  .mask {
-    position: absolute;
-    overflow: hidden;
+const GaugeWrapper = Styled.section`
+  position: relative;
+  display: inline-block;
+  width: ${props => props.width}px;
+  height: ${props => props.height}px;
+  line-height: 1;
+
+  svg {
     display: block;
-    width: ${props => props.width}px;
-    height: ${props => props.width / 2}px;
+    overflow: visible;
   }
 
-  .semi-circle {
-    position: relative;
-    display: block;
-    width: ${props => props.width}px;
-    height: ${props => props.width / 2}px;
-    background: linear-gradient(to right, #27b775 0%, #f3f32c 50%, #f71b1b 100%);
-    border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
-
-    &::before {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      z-index: 2;
-      display: block;
-      width: 140px;
-      height: 70px;
-      margin-left: -70px;
-      background: ${props => props.backgroundColor};
-      border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
-    }      
-  }
-
-  .semi-circle--mask {
+  .neko-gauge-content {
     position: absolute;
-    top: 0;
     left: 0;
-    width: ${props => props.width}px;
-    height: ${props => props.width}px;
-    background: transparent;
-    transform-origin: center center;
-    backface-visibility: hidden;
-    transition: all .3s ease-in-out;
-
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0%;
-      z-index: 2;
-      display: block;
-      width: ${props => props.width + 2}px;
-      height: ${props => props.width / 2 + 2}px;
-      margin-top: -1px;
-      margin-left: -1px;
-      background: #5396c1d6;
-      border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
-    }      
-  }
-
-  .gauge { 
-    width: ${props => props.width}px;
-    height: ${props => props.width / 2}px;
-    
-    .semi-circle--mask {
-      transform: rotate(${props => props.degrees}deg) translate3d(0,0,0);
-    }
-  }
-
-  .child-container {
-    position: absolute;
-    font-size: 16px;
+    right: 0;
+    bottom: ${props => Math.round(props.width * 0.05)}px;
     display: flex;
-    width: ${props => props.width + 2}px;
-    height: ${props => props.width / 2}px;
-    z-index: 10;
-
-    .spacing {
-      flex: auto;
-    }
-
-    .child {
-      color: white;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    text-align: center;
+    pointer-events: none;
   }
 `;
 
 const NekoGauge = ({ value = 1000, min = 0, max = 2500, width = 200, background = '#007cba', children }) => {
-  const [internalValue, setInternalValue] = useState(value);
-  const [degrees, setDegrees] = useState(0);
+  const id = useId().replace(/:/g, '');
+  const range = Math.max(1, max - min);
+  const ratio = Math.max(0, Math.min(1, (value - min) / range));
 
-  useEffect(() => {
-    const computedDegrees = 180 * (internalValue <= max ? internalValue : max) / max;
-    setDegrees(computedDegrees);
-  }, [internalValue, max]);
+  const stroke = Math.max(10, Math.round(width * 0.075));
+  const padding = stroke / 2 + 2;
+  const cx = width / 2;
+  const cy = width / 2;
+  const r = width / 2 - padding;
+  const height = Math.ceil(width / 2 + padding / 2);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setInternalValue(value);
-    }, 100);
-  }, [value]);
+  const arcPath = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+  const arcLength = Math.PI * r;
+  const filledLength = arcLength * ratio;
 
   return (
-    <StyledSection className='neko-gauge' backgroundColor={background} degrees={degrees} width={width}>
-      <div className="gauge">
-        <div className="mask">
-          <div className="semi-circle"></div>
-          <div className="semi-circle--mask"></div>
-        </div>
-        <div className="child-container">
-          <div className="child">
-            <div className="spacing" />
-            {children}
-          </div>
-        </div>
-      </div>
-    </StyledSection>
-  )
+    <GaugeWrapper className='neko-gauge' width={width} height={height} backgroundColor={background}>
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <defs>
+          <linearGradient id={`neko-gauge-${id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#27b775" />
+            <stop offset="50%" stopColor="#f3c52c" />
+            <stop offset="100%" stopColor="#f71b1b" />
+          </linearGradient>
+        </defs>
+        <path
+          d={arcPath}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.18)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+        />
+        <path
+          d={arcPath}
+          fill="none"
+          stroke={`url(#neko-gauge-${id})`}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${filledLength} ${arcLength + 1}`}
+          style={{ transition: 'stroke-dasharray 0.4s var(--neko-ease-out, ease-out)' }}
+        />
+      </svg>
+      <div className="neko-gauge-content">{children}</div>
+    </GaugeWrapper>
+  );
 };
 
 NekoGauge.propTypes = {
-  value : PropTypes.number,
-  min : PropTypes.number,
-  max : PropTypes.number,
-  width : PropTypes.number,
-  background : PropTypes.string,
+  value: PropTypes.number,
+  min: PropTypes.number,
+  max: PropTypes.number,
+  width: PropTypes.number,
+  background: PropTypes.string,
+  children: PropTypes.node,
 };
 
 export { NekoGauge };

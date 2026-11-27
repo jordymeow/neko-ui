@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import React, { useState, forwardRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
@@ -14,6 +11,7 @@ const StyledUploadDropArea = Styled.div`
 `;
 
 const NekoUploadDropArea = forwardRef((props, ref) => {
+
   const { onSuccess = () => {}, onFailure = () => {}, apiUrl, onSelectFiles = () => {},
     apiConfig, className, disabled = false, children, multiple, accept = "image/*", ...rest } = props;
   const [ inDropZone, setInDropZone ] = useState(false);
@@ -23,8 +21,8 @@ const NekoUploadDropArea = forwardRef((props, ref) => {
   const uploadFile = useCallback(async (files) => {
     setBusy(true);
     const upload = async (file) => {
-      apiConfig.file = file;
-      return await postFetch(apiUrl, apiConfig);
+      const config = { ...apiConfig, file };
+      return await postFetch(apiUrl, config);
     }
     const response = await Promise.all(files.map(async (file) => {
       return await upload(file);
@@ -72,6 +70,8 @@ const NekoUploadDropArea = forwardRef((props, ref) => {
   }, [disabled]);
 
   const onDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (disabled) return;
     const files = [...e.dataTransfer.files];
     e.target.value = null;

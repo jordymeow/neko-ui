@@ -1,7 +1,4 @@
-// Previous: none
-// Current: 0.0.0
-
-import React, { useState, useEffect, forwardRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
 import { NekoIcon } from '../misc/Icon';
@@ -57,6 +54,11 @@ const ForwardedNekoInput = (props, ref) => {
     natural = false,
     onReset,
     isCommaSeparatedArray = false,
+    iconEmpty = '',
+    iconFilled = '',
+    onEmptyIconClick,
+    onFilledIconClick,
+    action,
     className,
     style,
     inputStyle,
@@ -64,8 +66,30 @@ const ForwardedNekoInput = (props, ref) => {
   } = props;
 
   const [ newValue, setNewValue ] = useState(value || value === 0 ? value : '');
+  const [ revealed, setRevealed ] = useState(false);
   const isControlled = !!onCustomChange;
-  const localMaxLength = defaultMaxLength !== undefined ? defaultMaxLength : (type === 'number' ? 3 : undefined);
+
+  // Embedded action slot (e.g. an AI "Suggest" button living inside the field).
+  // We measure its width so the input text never runs underneath it, whether the
+  // button shows a label or just an icon.
+  const actionRef = useRef(null);
+  const [ actionWidth, setActionWidth ] = useState(0);
+  useLayoutEffect(() => {
+    if (!action || !actionRef.current) { setActionWidth(0); return; }
+    const el = actionRef.current;
+    const measure = () => setActionWidth(el.offsetWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [action]);
+
+  // Password fields render masked with a built-in eye toggle to reveal the value.
+  // Skipped when the caller supplies its own icon, to avoid clobbering it.
+  const isPassword = type === 'password';
+  const showPasswordToggle = isPassword && !iconEmpty && !iconFilled;
+  const effectiveType = isPassword && revealed ? 'text' : type;
+  const maxLength = defaultMaxLength ? defaultMaxLength : (type === 'number' ? 3 : undefined);
 
   useEffect(() => {
     if (onFinalChange && (onEnter || onCustomBlur)) {
@@ -77,17 +101,17 @@ const ForwardedNekoInput = (props, ref) => {
     if (!isControlled) {
       setNewValue(isCommaSeparatedArray ? arrayToString(value) : value);
     }
-  }, [value, isCommaSeparatedArray, isControlled]);
+  }, [value]);
 
   const onChange = (e) => {
     const targetValue = e.target.value;
-    const newVal = isCommaSeparatedArray ? stringToArray(targetValue) : targetValue;
+    const newValue = isCommaSeparatedArray ? stringToArray(targetValue) : targetValue;
 
     e.stopPropagation();
     e.preventDefault();
     
     if (isControlled) {
-      onCustomChange(newVal, name);
+      onCustomChange(newValue, name);
     }
     else {
       setNewValue(targetValue);
@@ -98,31 +122,31 @@ const ForwardedNekoInput = (props, ref) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const targetValue = e.target.value;
-      const newVal = isCommaSeparatedArray ? stringToArray(targetValue) : targetValue;
+      const newValue = isCommaSeparatedArray ? stringToArray(targetValue) : targetValue;
       
       if (onFinalChange) {
-        onFinalChange(newVal, name);
+        onFinalChange(newValue, name);
       }
       else if (onEnter) {
-        onEnter(newVal, name);
+        onEnter(newValue, name);
       }
     }
   };  
 
   const onBlur = (e) => {
     const targetValue = e.target.value;
-    const newVal = isCommaSeparatedArray ? stringToArray(targetValue) : targetValue;
+    const newValue = isCommaSeparatedArray ? stringToArray(targetValue) : targetValue;
   
     const valuesAreEqual = isCommaSeparatedArray
-      ? arraysAreEqual(value, newVal)
-      : value === newVal;
+      ? arraysAreEqual(value, newValue)
+      : value === newValue;
   
     if (!valuesAreEqual) {
       if (onFinalChange) {
-        onFinalChange(newVal, name);
+        onFinalChange(newValue, name);
       }
       else if (onCustomBlur) {
-        onCustomBlur(newVal, name);
+        onCustomBlur(newValue, name);
       }
     }
   };  
@@ -131,70 +155,137 @@ const ForwardedNekoInput = (props, ref) => {
 
   const validateInputNumberType = (e) => {
     const numValue = Number(e.target.value);
-    if (min !== null && numValue < Number(min)) {
-      e.target.value = min.toString();
-    } else if (max !== null && numValue > Number(max)) {
-      e.target.value = max.toString();
+    if (min && numValue < Number(min)) {
+      e.target.value = min;
+    } else if (max && numValue > Number(max)) {
+      e.target.value = max;
     }
   };
+
+  // Helper to determine if input has content
+  const hasContent = () => {
+    const currentValue = isControlled ? value : newValue;
+    if (isCommaSeparatedArray) {
+      return Array.isArray(currentValue) ? currentValue.length > 0 : false;
+    }
+    return currentValue && currentValue !== '' && currentValue !== 0;
+  };
+
+  // Determine which icon to show
+  const showReset = !!onReset && hasContent();
+  const shouldShowIcon = iconEmpty || iconFilled || showPasswordToggle || showReset;
+  const showFilledIcon = Boolean( hasContent() && iconFilled);
+  const showEmptyIcon  = Boolean(!hasContent() && iconEmpty );
 
   return (
     <div className={className} style={style}>
       <div style={{ position: 'relative' }}>
-        {type === 'number' ? (
-          <input
-            ref={ref}
-            className={classNames}
-            name={name}
-            value={isControlled ? value : newValue}
-            type={type}
+        {type === 'number' ? <input ref={ref} className={classNames} name={name}
+            value={isControlled ? value : newValue} type={type}
             disabled={readOnly}
-            step={step}
-            min={min}
-            max={max}
-            maxLength={localMaxLength}
-            autoComplete="off"
-            data-form-type="other"
+            step={step} min={min} max={max}
+            maxLength={maxLength}
+            autoComplete="off" data-form-type="other"
             placeholder={placeholder}
-            style={inputStyle}
-            onChange={onChange}
-            onKeyPress={onKeyPress}
+            style={{
+              ...inputStyle,
+              paddingRight: action ? `${actionWidth + 10}px` : (shouldShowIcon ? '30px' : undefined)
+            }}
+            onChange={onChange} onKeyPress={onKeyPress}
             onBlur={(e) => { validateInputNumberType(e); onBlur(e); } }
-            readOnly={readOnly}
-            {...rest}
-          />
-        ) : (
-          <input
-            ref={ref}
-            className={classNames}
-            {...rest}
-            name={name}
-            value={isControlled ? value : newValue}
-            type={type}
+            readOnly={readOnly} {...rest}
+          /> : <input ref={ref} className={classNames} {...rest} name={name}
+            value={isControlled ? value : newValue} type={effectiveType}
             disabled={readOnly}
             spellCheck="false"
-            autoComplete="off"
-            data-form-type="other"
+            autoComplete="off" data-form-type="other"
             placeholder={placeholder}
-            style={inputStyle}
-            maxLength={localMaxLength}
-            onChange={onChange}
-            onKeyPress={onKeyPress}
-            onBlur={onBlur}
-            readOnly={readOnly}
+            style={{
+              ...inputStyle,
+              paddingRight: action ? `${actionWidth + 10}px` : (shouldShowIcon ? '30px' : undefined)
+            }}
+            maxLength={maxLength}
+            onChange={onChange} onKeyPress={onKeyPress} onBlur={onBlur}
+            readOnly={readOnly} {...rest}
           />
+        }
+        {action && (
+          <div className="neko-input-action" ref={actionRef}>
+            {action}
+          </div>
         )}
-        {!!value && !!onReset && (
+        {showReset && (
           <NekoIcon
-            icon="close"
-            width={24}
-            style={{ position: 'absolute', top: '3px', right: '3px' }}
-            variant="blue"
+            icon='close'
+            width={15}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '8px',
+              transform: 'translateY(-50%)',
+              cursor: 'pointer'
+            }}
+            color='var(--neko-gray-60)'
             onClick={() => onReset()}
           />
         )}
+        
+        {/* Icon for empty/filled states */}
+        {showEmptyIcon && (
+          <NekoIcon 
+            icon={iconEmpty} 
+            width={15}
+            style={{ 
+              position: 'absolute', 
+              top: '50%', 
+              right: '8px', 
+              transform: 'translateY(-50%)',
+              pointerEvents: onEmptyIconClick ? 'auto' : 'none',
+              cursor: onEmptyIconClick ? 'pointer' : 'default'
+            }}
+            color='#5a5a5a82'
+            onClick={onEmptyIconClick}
+          />
+        )}
+
+        {showFilledIcon && (
+          <NekoIcon
+            icon={iconFilled}
+            width={15}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '8px',
+              transform: 'translateY(-50%)',
+              pointerEvents: onFilledIconClick ? 'auto' : 'none',
+              cursor: onFilledIconClick ? 'pointer' : 'default'
+            }}
+            color='var(--neko-blue)'
+            onClick={onFilledIconClick}
+          />
+        )}
+
+        {showPasswordToggle && (
+          <NekoIcon
+            icon={revealed ? 'eye-off' : 'eye'}
+            width={15}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '8px',
+              transform: 'translateY(-50%)',
+              cursor: 'pointer'
+            }}
+            color='#5a5a5a82'
+            onClick={() => setRevealed(r => !r)}
+          />
+        )}
       </div>
-      {description && <p className="neko-input-description">{description}</p>}
+      {description && (
+        typeof description === 'string' 
+          ? <p className="neko-input-description" dangerouslySetInnerHTML={{ __html: description }} />
+          : <p className="neko-input-description">{description}</p>
+      )}
     </div>
   );
 };
@@ -205,12 +296,16 @@ const StyledNekoInput = Styled(forwardRef(ForwardedNekoInput))`
     font-size: var(--neko-font-size);
     border: 1.5px solid var(--neko-input-border);
     box-sizing: border-box;
-    height: 30px;
+    height: var(--neko-control-height);
+    /* WP 7 admin CSS sets min-height: 40px on bare input[type="text"] etc.,
+       which overrides our height. Explicitly reset it so Neko's height wins. */
+    min-height: 0;
     background: var(--neko-input-background);
-    color: black;
+    color: var(--neko-font-color);
     padding: 0 10px;
     width: 100%;
-    transition: background 0.3s ease;
+    border-radius: var(--neko-radius-md);
+    transition: background 0.3s ease, box-shadow 0.2s ease, opacity 0.3s ease, border-color 0.3s ease;
 
     &.natural {
       border-color: gray;
@@ -223,17 +318,62 @@ const StyledNekoInput = Styled(forwardRef(ForwardedNekoInput))`
 
     &:focus {
       background-color: white;
+      outline: none;
     }
 
-    &.read-only {
+    /* Keyboard-only focus ring — the global --neko-focus-ring shadow + a
+       brand-tinted border so tabbing through a form is always visible.
+       Mouse clicks won't trigger this (browser distinguishes :focus from
+       :focus-visible). */
+    &:focus-visible {
+      outline: none;
+      border-color: color-mix(in oklab, var(--neko-main-color) 60%, transparent);
+      box-shadow: var(--neko-focus-ring);
+    }
+
+    &:read-only {
       color: var(--neko-gray-60);
     }
 
     &:disabled {
       color: var(--neko-gray-60);
       background: var(--neko-gray-98);
-      border: none;
+      border-color: var(--neko-input-border);
       box-shadow: none;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  /* Embedded action — sits flush inside the field on the right. Any NekoButton
+     dropped in here auto-shrinks to fit the control height (label or icon-only),
+     so callers just pass a normal <NekoButton>. See PATTERNS.md "Embedded field
+     action". */
+  .neko-input-action {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+
+    .neko-button {
+      height: calc(var(--neko-control-height) - 8px);
+      min-height: calc(var(--neko-control-height) - 8px);
+      min-width: 0;
+      padding: 0 10px;
+      border-radius: 6px;
+      /* Compact "micro-action" label — uppercase + tiny + bold reads as an
+         affordance inside the field rather than a full button. */
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    /* Icon-only embedded button → square, no side padding. */
+    .neko-button.has-icon:not(:has(.button-text)) {
+      width: calc(var(--neko-control-height) - 8px);
+      padding: 0;
     }
   }
 
@@ -243,15 +383,22 @@ const StyledNekoInput = Styled(forwardRef(ForwardedNekoInput))`
     line-height: 14px;
     margin-top: 5px;
     margin-bottom: 0;
+
+    code {
+      font-size: 9px;
+      background: #016fba14;
+      border-radius: 5px;
+      padding: 2px 4px;
+    }
   }
 `;
 
 const NekoInput = React.forwardRef((props, ref) => {
-  return <StyledNekoInput ref={ref} {...props} />;
+  return (<StyledNekoInput ref={ref} {...props} />);
 });
 
 NekoInput.propTypes = {
-  type: PropTypes.oneOf(['number', 'text']),
+  type: PropTypes.oneOf(['number', 'text', 'password']),
   name: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
   description: PropTypes.string,
@@ -267,7 +414,12 @@ NekoInput.propTypes = {
   maxLength: PropTypes.number,
   natural: PropTypes.bool,
   onReset: PropTypes.func,
-  isCommaSeparatedArray: PropTypes.bool
+  isCommaSeparatedArray: PropTypes.bool,
+  iconEmpty: PropTypes.string,
+  iconFilled: PropTypes.string,
+  onEmptyIconClick: PropTypes.func,
+  onFilledIconClick: PropTypes.func,
+  action: PropTypes.node
 };
 
 export { NekoInput };

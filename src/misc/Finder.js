@@ -1,19 +1,11 @@
-// Previous: none
-// Current: 0.0.0
-
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
-import { Icon } from '@iconify/react';
-import folderIcon from '@iconify/icons-mdi/folder';
-import folderOpen from '@iconify/icons-mdi/folder-open';
-import imageMultipleOutline from '@iconify/icons-mdi/image-multiple-outline';
-import chevronRight from '@iconify/icons-mdi/chevron-right';
-import chevronDown from '@iconify/icons-mdi/chevron-down';
-import tagIcon from '@iconify/icons-mdi/tag';
+import { Folder, FolderOpen, Images, ChevronRight, ChevronDown, Tag } from 'lucide-react';
 import { useClasses } from '../hooks';
 
 const StyledNekoFinder = props => {
+
   const { chevron = true } = props;
 
   const children = React.Children.map(props.children, child => {
@@ -96,9 +88,10 @@ const ItemContainer = Styled.div`
 `;
 
 const StyledNekoFinderItem = props => {
+
   const defaultIcons = {
-    gallery: imageMultipleOutline,
-    tag: tagIcon
+    gallery: Images,
+    tag: Tag
   }
 
   const { title, chevron, rightElement = null, rightElementStyle = { marginLeft: '5px' }, showRightElement = false, selected = false,
@@ -113,7 +106,7 @@ const StyledNekoFinderItem = props => {
     } else if (props.icon) {
       return props.icon;
     }
-    return folderIcon
+    return Folder
   });
   const isFolder = Boolean(icon);
   const [ showRightAction, setShowRightAction ] = useState(false);
@@ -121,7 +114,7 @@ const StyledNekoFinderItem = props => {
   useEffect(() => {
     setExpanded(isExpanded);
     if (!isCustomizedIcon) {
-      setIcon(isExpanded ? folderIcon : folderOpen);
+      setIcon(isExpanded ? FolderOpen : Folder);
     }
   }, [isCustomizedIcon, isExpanded]);
 
@@ -152,13 +145,13 @@ const StyledNekoFinderItem = props => {
         <FinderTitle className={finderTitleClassNames} onClick={onClick} onMouseEnter={props.onMouseEnter} onMouseLeave={props.onMouseLeave} draggable={draggable} onDragStart={onDragStart} onDragOver={onDragOver} onDrop={onDrop} onDragLeave={onDragLeave} onDragEnd={onDragEnd}>
           {chevron
             ? (isFolder && hasChild)
-              ? <Icon icon={expanded ? chevronDown : chevronRight} width="24" height="24" onClick={onChevronClick} />
+              ? (expanded ? <ChevronDown size={24} onClick={onChevronClick} /> : <ChevronRight size={24} onClick={onChevronClick} />)
               : <ChevronSpace></ChevronSpace>
             : null
           }
           <FinderTitleIconDropZone>
             <FinderTitleIconDroppableArea />
-            <Icon icon={icon} color={iconColor} width="24" height="24" />
+            {React.createElement(icon, { color: iconColor, size: 24 })}
           </FinderTitleIconDropZone>
           <span>{title}</span>
           {showRightElement &&
@@ -185,7 +178,7 @@ const NekoFinderItem = (props) => {
 }
 
 NekoFinderItem.propTypes = {
-  icon: PropTypes.oneOfType([PropTypes.instanceOf(Icon), PropTypes.oneOf(['gallery'])]),
+  icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.oneOf(['gallery'])]),
   title: PropTypes.string,
   isExpanded: PropTypes.bool
 };

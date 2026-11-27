@@ -1,12 +1,8 @@
-// Previous: none
-// Current: 0.0.0
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
 import { ProOnly } from '../label/ProOnly';
-import { Icon } from '@iconify/react';
-import chevronDown from '@iconify/icons-mdi/chevron-down';
+import { ChevronDown } from 'lucide-react';
 import { useOutsideClick, useComponentSize, useClasses } from '../hooks';
 
 const MenuButtonWrapper = Styled.div`
@@ -93,7 +89,7 @@ const StyledMenuButton = props => {
     <MenuButtonWrapper ref={wrapperRef} className="neko-menu-button-wrapper">
       <MenuButton ref={buttonRef} type="button" className="neko-menu-button" disabled={disabled} onClick={onClick} style={style}>
         <span style={titleStyle}>{title}</span>
-        {!hideChevron && <Icon icon={chevronDown} width="24" height="24" style={{ marginLeft: '4px' }} />}
+        {!hideChevron && <ChevronDown size={24} style={{ marginLeft: '4px' }} />}
       </MenuButton>
       {isOpen &&
         <MenuItemContainer className="neko-menu-item-container" style={{ transform: `translateX(calc(-50% + ${buttonWidth / 2}px))` }}>

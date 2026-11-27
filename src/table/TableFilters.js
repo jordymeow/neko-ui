@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { NekoIcon } from "../misc/Icon";
@@ -40,31 +37,39 @@ const StyledTableFilters = Styled.div`
 
   svg {
     color: var(--neko-disabled-color);
-
-    &.neko-active {
-      color: white;
-    }
   }
 `;
 
 const TableFilters = ({ accessor, options, type = 'checkbox', onChange, description, filters }) => {
   const [ visible, setVisible ] = useState(false);
-  const [ textWord, setTextWord ] = useState(''); // Variable renamed subtly
-  const [ typingTextValue, setTypingTextValue ] = useState('');
+  const [ textValue, setTextValue ] = useState(filters || '');
+  const [ typingTextValue, setTypingTextValue ] = useState(filters || '');
   const refIcon = useRef(null);
   const refInput = useRef(null);
-  const isActive = (filters && filters.length > 0) || textWord.length > 0; // Using textWord instead of textValue
-  const isCheckbox = type === 'checkbox';
-  const isSelect = type === 'select';
   const isText = type === 'text';
 
-  const onValidateTextChange = (value = undefined) => {
-    if (value !== undefined && value !== textWord) {
-      setTextWord(() => value);
+  // Sync local state with incoming filters prop for text filters
+  useEffect(() => {
+    if (isText && filters !== textValue) {
+      setTextValue(filters || '');
+      setTypingTextValue(filters || '');
     }
-    if (typingTextValue !== textWord) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, isText]);
+
+  const isActive = (filters && filters.length > 0) || textValue.length > 0;
+  const isCheckbox = type === 'checkbox';
+  const isSelect = type === 'select';
+
+  //console.log({ accessor, filters });
+
+  const onValidateTextChange = (value = undefined) => {
+    if (value !== undefined && value !== textValue) {
+      setTextValue(() => value);
+    }
+    if (typingTextValue !== textValue) {
       onChange(accessor, typingTextValue);
-      setTextWord(typingTextValue);
+      setTextValue(typingTextValue);
     }
   }
 
@@ -83,11 +88,11 @@ const TableFilters = ({ accessor, options, type = 'checkbox', onChange, descript
   return (
     <>
       <div ref={refIcon}>
-        <NekoIcon icon="filter" className={isActive ? 'neko-active' : ''}
+        <NekoIcon icon="filter" fill={isActive ? 'white' : undefined}
           onClick={() => setVisible(!visible)} width={16} height={16} />
       </div>
       <NekoContextMenu visible={visible} targetRef={refIcon} onClose={() => setVisible(false)}>
-        <StyledTableFilters>
+        <StyledTableFilters className="neko-table-filters">
           <div className="neko-context-menu">
             {!!description && <p style={{ marginTop: 0, marginBottom: 5 }}>{description}</p>}
             <div className="neko-context-content">
@@ -107,6 +112,7 @@ const TableFilters = ({ accessor, options, type = 'checkbox', onChange, descript
                 ))}
               </NekoCheckboxGroup>)}
               {isSelect && (<NekoSelect name="neko-context-menu-select"
+                value={filters}
                 onChange={(value) => onChange(accessor, value)}>
                   {options.map((item) => (
                     <NekoOption id={item.value} key={item.value} label={item.label} value={item.value} checked={filters === item.value} />
@@ -128,7 +134,7 @@ const TableFilters = ({ accessor, options, type = 'checkbox', onChange, descript
                   onChange(accessor, isCheckbox ? [] : null);
                   setTypingTextValue('');
                   setVisible(false);  
-                  setTextWord('');
+                  setTextValue('');
                 }}>
                   Reset
               </NekoButton>

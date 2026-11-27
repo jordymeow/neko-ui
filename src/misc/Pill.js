@@ -1,107 +1,122 @@
-// Previous: none
-// Current: 0.0.0
-
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
+import { NekoTooltip } from '../misc/Tooltip';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 
 const StyledPill = styled.div`
+  /* Soft "tinted" pill: coloured text on a light tint of the same colour, with a hairline
+     border. Each variant only sets --pill-color; the tints are mixed with white (not
+     transparent) so the pill stays readable on any background, including the blue header. */
+  --pill-color: var(--neko-main-color);
   display: inline-flex;
   position: relative;
   z-index: 10;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 999px;
-  color: white;
-  font-size: 12px;
-  cursor: ${props => (props.onClick || props.link ? 'pointer' : 'default')};
-  user-select: none;
-  background-color: var(--neko-main-color);
-  transition: background 0.3s ease, color 0.3s ease;
-  vertical-align: middle;
-  text-align: center;
   justify-content: center;
+  gap: 6px;
+  height: 22px;
+  box-sizing: border-box;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-family: var(--neko-font-family);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  color: color-mix(in srgb, var(--pill-color) 78%, black);
+  background: color-mix(in srgb, var(--pill-color) 11%, white);
+  border: 1px solid color-mix(in srgb, var(--pill-color) 24%, white);
+  cursor: ${props => (props.onClick || props.link ? 'pointer' : 'default')};
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
   a {
-    color: white;
+    color: inherit;
     text-decoration: none;
     cursor: pointer;
   }
 
-  &:hover {
-    ${props => (props.onClick || props.link) && css`
-      filter: brightness(1.1);
-    `}
+  ${props => (props.onClick || props.link) && css`
+    &:hover {
+      background: color-mix(in srgb, var(--pill-color) 18%, white);
+      border-color: color-mix(in srgb, var(--pill-color) 40%, white);
+      box-shadow: 0 1px 2px color-mix(in srgb, var(--pill-color) 20%, transparent);
+    }
+  `}
+
+  span {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
   }
 
   .led {
-    padding: 0;
-    width: 10px;
-    height: 10px;
+    flex: 0 0 6px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    margin-right: 5px;
-    position: relative;
+    background: var(--pill-color);
+    animation: nekoPillPulse 2s ease-out infinite;
   }
 
-  .led:before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 400%;
-    height: 400%;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0;
-    animation: pulse 2s infinite ease-out;
-    ${props =>
-      (props.className === 'warning' || props.className === 'danger') &&
-      css`
-        animation: none;
-      `}
+  @keyframes nekoPillPulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pill-color) 55%, transparent); }
+    70%  { box-shadow: 0 0 0 5px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
   }
 
-  @keyframes pulse {
-    0% {
-      transform: translate(-50%, -50%) scale(0);
-      opacity: 0.7;
+  @media (prefers-reduced-motion: reduce) {
+    .led { animation: none; }
+  }
+
+  &.primary   { --pill-color: var(--neko-main-color); }
+  &.success   { --pill-color: var(--neko-green); }
+  &.danger    { --pill-color: var(--neko-red); }
+  &.warning   { --pill-color: var(--neko-orange); }
+
+  /* Neutral: gray text, no colour cast. */
+  &.secondary {
+    --pill-color: var(--neko-gray-40);
+    color: var(--neko-gray-30);
+    background: var(--neko-gray-98);
+    border-color: var(--neko-gray-90);
+  }
+
+  &.warning .led, &.danger .led { animation: none; }
+
+  /* AI: the one solid pill, a slow-moving gradient so it stays recognisable. */
+  &.ai {
+    --pill-color: #a855f7;
+    color: white;
+    border-color: transparent;
+    background: linear-gradient(120deg, #818cf8, #a855f7, #ec4899, #818cf8);
+    background-size: 300% 300%;
+    animation: aiPillFlow 6s ease infinite;
+    box-shadow: 0 1px 3px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+    .led {
+      background: white;
+      --pill-color: white;
     }
-    70% {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 0;
+
+    @keyframes aiPillFlow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
-    100% {
-      transform: translate(-50%, -50%) scale(0);
-      opacity: 0;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
     }
-  }
-
-  .led.success {
-    background-color: var(--neko-green);
-  }
-
-  .led.danger {
-    background-color: red;
-  }
-
-  .led.primary {
-    background-color: #00a0ef;
-  }
-
-  .led.secondary {
-    background-color: var(--neko-secondary);
-  }
-
-  .led.warning {
-    background-color: var(--neko-yellow);
   }
 
   &.pill-extender {
     z-index: 1;
-    position: relative;
     left: -25px;
     width: ${props => props.extender_width || 'auto'};
+    background: color-mix(in srgb, var(--pill-color) 6%, white);
 
     .pill-extender-inner {
       display: flex;
@@ -111,63 +126,28 @@ const StyledPill = styled.div`
     span {
       margin-left: 20px;
     }
-
-    &.danger {
-      background-color: rgba(129, 60, 21, 0.5);
-    }
-
-    &.primary {
-      background-color: rgba(var(--neko-main-color), 0.5);
-    }
-
-    &.secondary {
-      background-color: rgba(var(--neko-secondary), 0.5);
-    }
-
-    &.warning {
-      background-color: rgba(var(--neko-neon-yellow), 0.5);
-    }
-
-    &.success {
-      background-color: rgba(var(--neko-lime), 0.5);
-    }
-  }
-
-  span {
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: flex;
-    align-items: center;
-  }
-
-  &.primary {
-    background-color: var(--neko-main-color-alternative);
-  }
-
-  &.secondary {
-    background-color: var(--neko-secondary);
-    border: 1px solid var(--neko-input-border);
-    color: var(--neko-main-color);
-  }
-
-  &.danger {
-    border: 2px solid var(--neko-red);
-  }
-
-  &.warning {
-    border: 2px solid var(--neko-yellow);
-  }
-
-  &.success {
-    border: 2px solid var(--neko-green);
   }
 `;
 
+/**
+ * NekoPill Component
+ * @param {object} props - Component props
+ * @param {string} [props.className] - Additional CSS classes
+ * @param {React.ReactNode} [props.children] - Children nodes
+ * @param {Function} [props.onClick] - Click event handler
+ * @param {boolean} [props.led] - Display LED indicator
+ * @param {string} [props.extender_label] - Label for the extender
+ * @param {React.ReactNode} [props.extender_children] - Children for the extender
+ * @param {string} [props.extender_width] - Width for the extender
+ * @param {string} [props.link] - URL to open when the pill is clicked
+ */
 const NekoPill = ({
   className = 'primary',
+  variant,
   children = null,
   onClick = null,
   led = true,
+  tooltip = '',
   label,
   extender_label = null,
   extender_children = null,
@@ -175,55 +155,41 @@ const NekoPill = ({
   link = null,
   ...rest
 }) => {
-  const [clickCount, setClickCount] = useState(0);
-  const [isMounted, setIsMounted] = useState(true);
-  const [timeoutId, setTimeoutId] = useState(null);
+  // Handle deprecation warning for className used as variant
+  React.useEffect(() => {
+    if (className && ['primary', 'secondary', 'danger', 'warning', 'success', 'ai'].includes(className) && !variant) {
+      console.warn(`NekoPill: Using 'className' prop for pill variants is deprecated. Please use 'variant' prop instead. Found className="${className}"`);
+    }
+  }, [className, variant]);
 
-  useEffect(() => {
-    setIsMounted(true);
-    return () => {
-      setIsMounted(false);
-    };
-  }, []);
-
+  // Use variant if provided, otherwise fall back to className for backward compatibility
+  const pillVariant = variant || ((['primary', 'secondary', 'danger', 'warning', 'success', 'ai'].includes(className)) ? className : 'primary');
+  const additionalClasses = (className && !['primary', 'secondary', 'danger', 'warning', 'success', 'ai'].includes(className)) ? className : '';
   const onClickEvent = useCallback(
     (ev) => {
       if (onClick) {
         onClick();
         ev.stopPropagation();
         ev.preventDefault();
-        setClickCount(prev => prev + 1);
       }
     },
     [onClick]
   );
 
-  useEffect(() => {
-    if (clickCount > 0) {
-      const id = setTimeout(() => {
-        // do nothing
-      }, 5000);
-      setTimeoutId(id);
-    }
-  }, [clickCount]);
-
-  const contentRef = React.useRef(null);
-  if (contentRef.current) {
-    contentRef.current.focus();
-  }
-
   const content = (
-    <StyledPill className={className} onClick={onClick ? onClickEvent : undefined} {...rest} link={link} ref={contentRef}>
-      {led && <div className={`led ${className}`}></div>}
-      {label && <span>{label}</span>}
-      {children}
-    </StyledPill>
+    <NekoTooltip text={tooltip} position="top">
+      <StyledPill className={`neko-pill ${pillVariant} ${additionalClasses}`.trim()} onClick={onClick ? onClickEvent : undefined} {...rest} link={link}>
+        {led && <div className={`led ${pillVariant}`}></div>}
+        {label && <span>{label}</span>}
+        {children}
+      </StyledPill>
+    </NekoTooltip>
   );
 
   return (
     <>
       {link ? (
-        <a href={link} target="_blank" rel="noopener noreferrer" tabIndex={-1}>
+        <a href={link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', boxShadow: 'none' }}>
           {content}
         </a>
       ) : (
@@ -231,7 +197,7 @@ const NekoPill = ({
       )}
 
       {(extender_label || extender_children) && (
-        <StyledPill className={`pill-extender ${className}`} extender_width={extender_width}>
+        <StyledPill className={`pill-extender ${pillVariant}`} extender_width={extender_width}>
           <div className="pill-extender-inner">
             {extender_label && <span>{extender_label}</span>}
             {extender_children}
@@ -243,7 +209,8 @@ const NekoPill = ({
 };
 
 NekoPill.propTypes = {
-  className: PropTypes.oneOf(['primary', 'secondary', 'danger', 'warning', 'success']),
+  className: PropTypes.string,
+  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'warning', 'success', 'ai']),
   children: PropTypes.node,
   onClick: PropTypes.func,
   led: PropTypes.bool,
@@ -252,3 +219,5 @@ NekoPill.propTypes = {
   extender_width: PropTypes.string,
   link: PropTypes.string,
 };
+
+export { NekoPill };

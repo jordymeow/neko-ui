@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import React, { useMemo, useState, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import Styled from "styled-components";
@@ -12,7 +9,7 @@ import { NekoPaging } from "../misc/Paging";
 import NekoBusyOverlay from "../common/NekoBusyOverlay";
 import { NekoIcon } from "../misc/Icon";
 import { NekoTable } from "../table/Table";
-import { useClasses } from '../hooks';
+import { useClasses, useDeprecatedIsBusy } from '../hooks';
 
 const StyledNekoModal = Styled(NekoModal)`
   width: 800px;
@@ -100,9 +97,9 @@ const StyledNekoModal = Styled(NekoModal)`
 
 const columns = [
   { accessor: 'title', title: 'Title' },
-  { accessor: 'date', title: 'Date', style: { width: '120px' } },
-  { accessor: 'author', title: 'Author', style: { width: '150px' } },
-  { accessor: 'status', title: 'Status', style: { width: '100px' } },
+  { accessor: 'date', title: 'Date', width: '120px' },
+  { accessor: 'author', title: 'Author', width: '150px' },
+  { accessor: 'status', title: 'Status', width: '100px' },
 ];
 
 const StyledNekoPostSelectorModal = (props) => {
@@ -114,6 +111,7 @@ const StyledNekoPostSelectorModal = (props) => {
     onSearch, 
     searchValue, 
     busy,
+    isBusy,
     currentPage, 
     limit, 
     total, 
@@ -127,10 +125,14 @@ const StyledNekoPostSelectorModal = (props) => {
     maxSelect = 1,
     ...rest 
   } = props;
+  
+  // Handle both busy and isBusy props - prefer busy over isBusy
+  const busyState = busy || isBusy;
+  
+  useDeprecatedIsBusy(isBusy, 'NekoPostSelectorModal');
 
   const [search, setSearch] = useState(searchValue);
   const classNames = useClasses('neko-post-selector-modal', className);
-  const prevSearchRef = useRef(search);
 
   const onReset = useCallback(() => {
     setSearch("");
@@ -207,7 +209,7 @@ const StyledNekoPostSelectorModal = (props) => {
               <div className="neko-post-selector-modal-search">
                 <NekoInput 
                   value={search} 
-                  disabled={busy} 
+                  disabled={busyState} 
                   onEnter={onSearch} 
                   onChange={(v) => setSearch(v)} 
                   placeholder="Search posts..." 
@@ -237,7 +239,7 @@ const StyledNekoPostSelectorModal = (props) => {
           </div>
           <div>
             <div className="neko-post-selector-modal-content-body">
-              <NekoBusyOverlay busy={busy}>
+              <NekoBusyOverlay busy={busyState}>
                 <div className="neko-post-selector-modal-content-body-list">
                   {postListJsx}
                 </div>
@@ -294,6 +296,7 @@ NekoPostSelectorModal.propTypes = {
   onSearch: PropTypes.func,
   searchValue: PropTypes.string,
   busy: PropTypes.bool,
+  isBusy: PropTypes.bool,
   currentPage: PropTypes.number,
   limit: PropTypes.number,
   total: PropTypes.number,
@@ -321,4 +324,4 @@ NekoPostSelectorModal.propTypes = {
   maxSelect: PropTypes.number,
 };
 
-export { NekoPostSelectorModal };
+export { NekoPostSelectorModal }; 

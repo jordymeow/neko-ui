@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
@@ -19,7 +16,7 @@ const TooltipContent = styled.div`
   font-weight: normal;
   font-size: var(--neko-font-size);
   padding: 8px 12px;
-  max-width: ${(props) => props.maxWidth}px;
+  max-width: ${(props) => props.$maxWidth}px;
   width: max-content;
   word-break: break-word;
   white-space: normal;
@@ -27,7 +24,9 @@ const TooltipContent = styled.div`
   opacity: ${(props) => (props.visible ? 1 : 0)};
   transition: opacity 0.15s ease-in-out, transform 0.25s ease-in-out;
   position: absolute;
-  z-index: 100;
+  /* Rendered in a portal on the body, so it has to clear the modal overlay (z-index 9999) too:
+     below it, every tooltip inside a modal was hidden behind the modal. */
+  z-index: 10000;
   transform: ${(props) => {
 
     const smallOffset = '5px';
@@ -139,12 +138,13 @@ const StyledNekoTooltip = (props) => {
       }
       setCoords({ top, left });
     }
-  }, [show, position, coords]);
+  }, [show, position]);
 
   return (
     <TooltipContainer
       className="neko-tooltip"
       ref={containerRef}
+      style={props.style}
       onMouseEnter={() => text && debouncedShow(true)}
       onMouseLeave={() => debouncedShow(false)}
     >
@@ -153,7 +153,7 @@ const StyledNekoTooltip = (props) => {
           <TooltipContent
             visible={show}
             position={position}
-            maxWidth={maxWidth}
+            $maxWidth={maxWidth}
             style={{
               top: coords.top,
               left: coords.left,
@@ -177,11 +177,17 @@ const StyledNekoTooltip = (props) => {
 };
 
 const NekoTooltip = (props) => {
+  
+  if(!props.text) {
+    return props.children || null;
+  }
+
   return <StyledNekoTooltip {...props} />;
 };
 
 NekoTooltip.propTypes = {
-  text: PropTypes.string,
+  style: PropTypes.object,
+  text: PropTypes.node,
   position: PropTypes.oneOf(['top', 'right', 'bottom', 'left']),
   maxWidth: PropTypes.number,
 };

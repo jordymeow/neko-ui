@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import React, { useMemo, useState, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import Styled from "styled-components";
@@ -15,7 +12,7 @@ import { NekoUploadDropArea } from "../misc/UploadDropArea";
 import { NekoTable } from "../table/Table";
 import { NekoCheckboxGroup } from "../form/CheckboxGroup";
 import { NekoCheckbox } from "../form/Checkbox";
-import { useClasses } from '../hooks';
+import { useClasses, useDeprecatedIsBusy } from '../hooks';
 
 const StyledNekoModal = Styled(NekoModal)`
   width: 633px;
@@ -62,49 +59,141 @@ const StyledNekoModal = Styled(NekoModal)`
     }
     .neko-media-library-modal-content-body-gallery {
       display: grid;
-      gap: 10px;
+      gap: 12px;
       grid-template-columns: repeat(6, 1fr);
       margin-bottom: 10px;
 
       .neko-media-library-modal-content-media-container {
         cursor: pointer;
         position: relative;
+        aspect-ratio: 1 / 1;
+        border-radius: var(--neko-radius-sm);
+        overflow: hidden;
+        background: var(--neko-gray-95);
+        box-shadow: var(--neko-shadow-xs);
+        transition: transform var(--neko-duration-fast) var(--neko-ease-out),
+                    box-shadow var(--neko-duration-fast) var(--neko-ease-out);
 
         img, video {
           box-sizing: border-box;
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform var(--neko-duration-base) var(--neko-ease-out);
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: linear-gradient(to top, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0) 55%);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity var(--neko-duration-fast) var(--neko-ease-out);
+        }
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--neko-shadow-md);
+
+          img, video {
+            transform: scale(1.05);
+          }
+
+          &::after {
+            opacity: 1;
+          }
+
+          .zoom-button {
+            opacity: 1;
+          }
         }
 
         &.disabled {
+          cursor: auto;
+          box-shadow: none;
+
           img, video {
             opacity: 0.3;
-            cursor: auto;
+          }
+
+          &:hover {
+            transform: none;
+            box-shadow: none;
+
+            img, video {
+              transform: none;
+            }
+
+            &::after {
+              opacity: 0;
+            }
+
+            .zoom-button {
+              opacity: 0;
+            }
           }
         }
 
         &.selected {
-          img, video {
-            cursor: pointer;
-            border: 5px solid var(--neko-main-color);
+          box-shadow: 0 0 0 3px var(--neko-main-color), var(--neko-shadow-md);
+
+          &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: var(--neko-main-color);
+            opacity: 0.14;
+            pointer-events: none;
+            z-index: 1;
+          }
+
+          .selected-badge {
+            opacity: 1;
+            transform: none;
           }
         }
 
-        &:hover {
-          .zoom-button {
-              display: block;
-          }
+        .selected-badge {
+          align-items: center;
+          background: var(--neko-main-color);
+          border-radius: 50%;
+          box-shadow: var(--neko-shadow-sm);
+          color: var(--neko-white);
+          display: flex;
+          height: 22px;
+          justify-content: center;
+          opacity: 0;
+          position: absolute;
+          right: 6px;
+          top: 6px;
+          transform: scale(0.6);
+          transition: opacity var(--neko-duration-fast) var(--neko-ease-out),
+                      transform var(--neko-duration-base) var(--neko-ease-spring);
+          width: 22px;
+          z-index: 3;
         }
 
         .zoom-button {
-          background-color: rgba(0, 0, 0, 0.4);
+          align-items: center;
+          background-color: var(--neko-main-color);
           border: 0;
-          border-radius: 30px;
+          border-radius: 50%;
+          box-shadow: var(--neko-shadow-sm);
           cursor: pointer;
-          display: none;
+          display: flex;
+          height: 16px;
+          width: 16px;
+          justify-content: center;
+          left: 6px;
+          opacity: 0;
           position: absolute;
-          top: 2px;
-          left: 2px;
-          width: 30px;
-          height: 30px;
+          top: 6px;
+          transition: opacity var(--neko-duration-fast) var(--neko-ease-out);
+          z-index: 3;
         }
       }
     }
@@ -116,12 +205,14 @@ const StyledNekoModal = Styled(NekoModal)`
 
     .neko-media-library-modal-content-body-selected-gallery {
       display: flex;
+      overflow-x: auto;
 
       .neko-media-library-modal-content-selected-media-container {
         overflow: hidden;
         position: relative;
         height: 50px;
         width: 50px;
+        flex: 0 0 auto;
         padding-right: 5px;
 
         &.dummy {
@@ -134,10 +225,6 @@ const StyledNekoModal = Styled(NekoModal)`
 
         &.drag-over {
           width: 105px;
-
-          .zoom-button {
-            left: 56px;
-          }
         }
 
         &.drag-over::before {
@@ -152,6 +239,7 @@ const StyledNekoModal = Styled(NekoModal)`
           box-sizing: border-box;
           width: 100%;
           max-width: 50px;
+          border-radius: var(--neko-radius-sm);
         }
 
         &.drag-over {
@@ -161,34 +249,23 @@ const StyledNekoModal = Styled(NekoModal)`
         }
 
         &:hover {
-          .remove-button,
-          .zoom-button {
-              display: block;
+          .remove-button {
+              display: flex;
           }
         }
 
         .remove-button {
-          background-color: rgba(0, 0, 0, 0.4);
+          align-items: center;
+          background-color: var(--neko-danger);
           border: 0;
-          border-radius: 20px;
+          border-radius: 50%;
+          box-shadow: var(--neko-shadow-sm);
           cursor: pointer;
           display: none;
+          justify-content: center;
           position: absolute;
-          top: 1px;
-          right: 1px;
-          width: 20px;
-          height: 20px;
-        }
-
-        .zoom-button {
-          background-color: rgba(0, 0, 0, 0.4);
-          border: 0;
-          border-radius: 20px;
-          cursor: pointer;
-          display: none;
-          position: absolute;
-          top: 1px;
-          left: 1px;
+          top: 0px;
+          right: 2px;
           width: 20px;
           height: 20px;
         }
@@ -218,16 +295,21 @@ const displayModes = {
   list: 'list'
 };
 const columns = [
-  { accessor: 'thumbnail_url', title: 'Thumb', style: { width: '42px' } },
+  { accessor: 'thumbnail_url', title: 'Thumb',  width: '55px'  },
   { accessor: 'title', title: 'Title' },
-  { accessor: 'size', title: 'Size', style: { width: '70px' } },
+  { accessor: 'size', title: 'Size', width: '70px' },
   { accessor: 'filename', title: 'Filename' },
 ];
 
 const StyledNekoMediaLibraryModal = (props) => {
-  const { images, onNextPage, onPreviousPage, onRefresh, onClick, onRemoveClick, onZoomClick, onSearch, onUnusedImagesChanged, unusedImagesValue, searchValue, busy,
+  const { images, onNextPage, onPreviousPage, onRefresh, onClick, onRemoveClick, onZoomClick, onSearch, onUnusedImagesChanged, unusedImagesValue, searchValue, busy, isBusy,
     currentPage, limit, total, onPageChange, selected, multiSelect = false, showUploader = false, uploader, onSelectedOrderChanged, accept = [], className,
     onUploadSuccess = () => {}, onUploadFailure = () => {}, uploadApiUrl, uploadApiConfig, uploadMultiple, onClose, onCancel, onSave, ...rest } = props;
+  
+  // Handle both busy and isBusy props - prefer busy over isBusy
+  const busyState = busy || isBusy;
+  
+  useDeprecatedIsBusy(isBusy, 'NekoMediaLibraryModal');
   const [ search, setSerch ] = useState(searchValue);
   const [ dragImageIndex, setDragImageIndex ] = useState(null);
   const [ displayMode, setDisplayMode ] = useState(displayModes.grid);
@@ -244,6 +326,7 @@ const StyledNekoMediaLibraryModal = (props) => {
     if (dragImageIndex === null) return;
     const { width, left, right } = e.currentTarget.getBoundingClientRect();
     let target = i;
+    // Only tweak the index if the element dragged over is the right on the image dragged.
     if (dragImageIndex < i) {
       if (i > 0 && i < selected.length) {
         if (target + 1 === dragImageIndex && e.clientX >= right - nextItemRange) {
@@ -287,10 +370,7 @@ const StyledNekoMediaLibraryModal = (props) => {
           { (image.mime === undefined || image.mime?.includes('image')) && <img src={image.src} className="neko-media-library-modal-content-media" /> }
           { image.mime?.includes('video') && <video autoplay loop muted playsInline src={image.src} className="neko-media-library-modal-content-media" /> }
           <button className="remove-button" onClick={() => onRemoveClick({ id: image.id, src: image.src })}>
-            <NekoIcon icon="close" variant="white" width={19} height={19} />
-          </button>
-          <button className="zoom-button" onClick={() => onZoomClick(image)}>
-            <NekoIcon icon="zoom-in" variant="white" width={19} height={19} />
+            <NekoIcon icon="close" color="var(--neko-white)" width={16} height={16} />
           </button>
         </div>
       );
@@ -300,7 +380,15 @@ const StyledNekoMediaLibraryModal = (props) => {
 
   const mediaGridJsx = useMemo(() => {
     return images.map((image) => {
-      const isSelected = selected.some(v => v.id === image.id);
+      const isSelected = selected.some(v => {
+        if (v == null) return false;
+        if (typeof v === 'object') {
+          if (v.id !== undefined && image.id !== undefined && String(v.id) === String(image.id)) return true;
+          if (v.src !== undefined && image.src !== undefined && v.src === image.src) return true;
+          return false;
+        }
+        return String(v) === String(image.id);
+      });
       const isDisabled = acceptMimes.length && !acceptMimes.includes(image.mime);
       const additionalClassNames = [
         isSelected ? 'selected' : null,
@@ -316,9 +404,12 @@ const StyledNekoMediaLibraryModal = (props) => {
         }}>
           { (image.mime === undefined || image.mime?.includes('image')) && <img src={image.src} className="neko-media-library-modal-content-media" width="90" height="90" /> }
           { image.mime?.includes('video') && <video autoplay loop muted playsInline  src={image.src} className="neko-media-library-modal-content-media" width="90" height="90" /> }
-          <button className="zoom-button" onClick={(e) => { e.stopPropagation(); onZoomClick(image); }}>
-            <NekoIcon icon="zoom-in" variant='white' width={29} height={29} />
-          </button>
+          {onZoomClick && <button className="zoom-button" onClick={(e) => { e.stopPropagation(); onZoomClick(image); }}>
+            <NekoIcon icon="plus" color="var(--neko-white)" width={16} height={16} />
+          </button>}
+          {isSelected && <span className="selected-badge">
+            <NekoIcon icon="check" color="var(--neko-white)" width={16} height={16} />
+          </span>}
         </div>
       );
     });
@@ -351,7 +442,7 @@ const StyledNekoMediaLibraryModal = (props) => {
 
   const mediaListJsx = useMemo(() => {
     const onSelect = (ids, e) => {
-      const image = images.find(v => v.id === ids[0]);
+      const image = images.find(v => ids.includes(v.id));
       onClick({ id: image.id, src: image.src, zoom_src: image.zoom_src, mime: image.mime });
     }
     return <NekoTable
@@ -378,12 +469,12 @@ const StyledNekoMediaLibraryModal = (props) => {
                 </div>
                 <NekoButton onClick={() => onSearch(search)} style={{ marginLeft: '4px', marginRight: '4px' }}>Search</NekoButton>
                 <NekoIcon variant={ displayMode === displayModes.grid ? 'black' : 'blue' } icon='view-grid' onClick={() => setDisplayMode(displayModes.grid)} width="20" height="20" />
-                <NekoIcon variant={ displayMode === displayModes.list ? 'black' : 'blue' } icon='format-list-bulleted' onClick={() => setDisplayMode(displayModes.list)} width="20" height="20" />
+                <NekoIcon variant={ displayMode === displayModes.list ? 'black' : 'blue' } icon='list' onClick={() => setDisplayMode(displayModes.list)} width="20" height="20" />
               </div>
             </div>
             <div>
               <div className="neko-media-library-modal-content-body">
-                <NekoBusyOverlay busy={busy}>
+                <NekoBusyOverlay busy={busyState}>
                   <div className={`${displayMode === displayModes.grid ? 'neko-media-library-modal-content-body-gallery' : 'neko-media-library-modal-content-body-list'}`}>
                     {displayMode === displayModes.grid && showUploader && uploader}
                     {displayMode === displayModes.grid ? mediaGridJsx : mediaListJsx}
@@ -433,6 +524,7 @@ NekoMediaLibraryModal.propTypes = {
   onSearch: PropTypes.func,
   searchValue: PropTypes.string,
   busy: PropTypes.bool,
+  isBusy: PropTypes.bool,
   currentPage: PropTypes.number,
   limit: PropTypes.number,
   total: PropTypes.number,

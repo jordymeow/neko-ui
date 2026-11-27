@@ -1,11 +1,15 @@
-// Previous: none
-// Current: 0.0.0
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
 import { useClasses } from '../hooks';
+import { NekoIcon } from '../misc/Icon';
 
+/**
+ * @param {string} name
+ * @param {string} value
+ * @param {string} description
+ * @param {string} placeholder
+ */
 const StyledNekoTextArea = Styled(props => {
   const {
     name,
@@ -25,11 +29,14 @@ const StyledNekoTextArea = Styled(props => {
     countable = false,
     disabled,
     tabToSpaces,
+    copyable = false,
+    action,
     ...rest
   } = props;
   const [ newValue, setNewValue ] = useState(value);
   const [ count, setCount ] = useState(0);
   const [ pressShift, setPressShift ] = useState(false);
+  const [ copied, setCopied ] = useState(false);
   const isControlled = !!props.onChange;
   const textareaRef = useRef(null);
 
@@ -38,8 +45,8 @@ const StyledNekoTextArea = Styled(props => {
       e.preventDefault();
       const start = textareaRef.current.selectionStart;
       const end = textareaRef.current.selectionEnd;
-      const currentValue = textareaRef.current.value;
-      textareaRef.current.value = currentValue.substring(0, start) + '  ' + currentValue.substring(end);
+      const value = textareaRef.current.value;
+      textareaRef.current.value = value.substring(0, start) + '  ' + value.substring(end);
       textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + 2;
     }
     else {
@@ -51,12 +58,14 @@ const StyledNekoTextArea = Styled(props => {
   }, []);
 
   useEffect(() => {
-    document.addEventListener("keydown", keydownFunction, false);
-    document.addEventListener("keyup", keyupFunction, false);
+    const el = textareaRef.current;
+    if (!el) return;
+    el.addEventListener("keydown", keydownFunction, false);
+    el.addEventListener("keyup", keyupFunction, false);
 
     return () => {
-      document.removeEventListener("keydown", keydownFunction, false);
-      document.removeEventListener("keyup", keyupFunction, false);
+      el.removeEventListener("keydown", keydownFunction, false);
+      el.removeEventListener("keyup", keyupFunction, false);
     }
   }, [keydownFunction, keyupFunction]);
 
@@ -64,56 +73,104 @@ const StyledNekoTextArea = Styled(props => {
     if (!isControlled) {
       setNewValue(value);
     }
+    // Words
     if (countable === "words") {
+      // Count the number of words in value
       const words = value.split(' ');
-      const countWords = words.filter(word => word !== '').length;
-      setCount(countWords);
+      const count = words.filter(word => word !== '').length;
+      setCount(count);
     }
+    // Characters
     else if (countable) {
       setCount(value.length);
     }
   }, [value, countable, isControlled]);
 
   const onChange = useCallback((e) => {
-    const newVal = maxLength ? e.target.value.substr(0, maxLength): e.target.value;
+    const newValue = maxLength ? e.target.value.substr(0, maxLength): e.target.value;
     e.stopPropagation();
     if (isControlled) { 
-      props.onChange(newVal, name);
+      props.onChange(newValue, name);
     }
     else {
-      setNewValue(newVal);
+      setNewValue(newValue, name);
     }
   }, [maxLength, isControlled, props, name]);
 
   const onKeyPress = (e) => {
     if (onEnter && !e.shiftKey && e.key === 'Enter') {
       if (avoidOnEnterWithShift && pressShift) return;
+
       e.preventDefault();
-      if (props.onEnter) {
-        props.onEnter(e.target.value, name);
-      }
+      props.onEnter(e.target.value, name);
     }
   };
 
   const onBlur = (e) => {
-    if (onBlurForce || (props.onBlur && value !== e.target.value)) {
+    if (onBlurForce || props.onBlur && value !== e.target.value) {
       props.onBlur(e.target.value, name);
     }
   };
+
+  const handleCopy = useCallback(async () => {
+    const textToCopy = isControlled ? value : newValue;
+    if (!textToCopy) return;
+    
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = textToCopy;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [value, newValue, isControlled]);
 
   const classes = useClasses(className, { disabled });
 
   return (
     <div className={classes} style={style}>
       <div className="neko-textarea-container">
-        <textarea ref={textareaRef} className="neko-textarea" rows={rows} disabled={disabled} {...rest} name={name}
-          spellCheck="false" placeholder={placeholder} 
-          onChange={onChange} onKeyPress={onKeyPress} onBlur={onBlur}
-          readOnly={readOnly}
-          style={{ ...textAreaStyle, height: fullHeight ? '100%' : textAreaStyle.height ?? undefined }}
-          value={isControlled ? value : newValue} />
+        <div className="neko-textarea-field">
+          <textarea ref={textareaRef} className="neko-textarea" rows={rows} disabled={disabled} {...rest} name={name}
+            spellCheck="false" placeholder={placeholder}
+            onChange={onChange} onKeyPress={onKeyPress} onBlur={onBlur}
+            readOnly={readOnly}
+            style={{ ...textAreaStyle, height: fullHeight ? '100%' : textAreaStyle.height ?? undefined }}
+            value={isControlled ? value : newValue} />
+          {copyable && (readOnly || disabled) && (
+            <button
+              className="neko-textarea-copy-button"
+              onClick={handleCopy}
+              type="button"
+              title={copied ? "Copied!" : "Copy to clipboard"}
+            >
+              <NekoIcon icon={copied ? "check" : "duplicate"} />
+            </button>
+          )}
+          {/* Embedded action — floats over the bottom-right of the textarea
+              (e.g. an AI "Suggest" button). See PATTERNS.md "Embedded field action". */}
+          {action && (
+            <div className="neko-textarea-action">
+              {action}
+            </div>
+          )}
+        </div>
         <div className="neko-text-area-extra">
-          {description && <div className="neko-input-description">{description}</div>}
+          {description ? (
+            typeof description === 'string'
+              ? <div className="neko-input-description" dangerouslySetInnerHTML={{ __html: description }} />
+              : <div className="neko-input-description">{description}</div>
+          ) : countable ? (
+            <div></div>
+          ) : null}
           {countable && <div className="neko-textarea-count">
             {count}{maxLength ? ` / ${maxLength}` : ''} {countable === "words" ? "words" : "chars"}
           </div>}
@@ -127,51 +184,170 @@ const StyledNekoTextArea = Styled(props => {
     height: ${props => props.fullHeight ? '100%' : undefined}
   }
 
+  .neko-textarea-field {
+    position: relative;
+    height: ${props => props.fullHeight ? '100%' : undefined}
+  }
+
+  /* Embedded action — floats over the bottom-right corner of the textarea. Any
+     NekoButton dropped in here auto-shrinks (label or icon-only). See PATTERNS.md
+     "Embedded field action". */
+  .neko-textarea-action {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    align-items: center;
+
+    .neko-button {
+      height: calc(var(--neko-control-height) - 8px);
+      min-height: calc(var(--neko-control-height) - 8px);
+      min-width: 0;
+      padding: 0 10px;
+      border-radius: 6px;
+      /* Compact "micro-action" label — uppercase + tiny + bold reads as an
+         affordance inside the field rather than a full button. */
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .neko-button.has-icon:not(:has(.button-text)) {
+      width: calc(var(--neko-control-height) - 8px);
+      padding: 0;
+    }
+  }
+
+  .neko-textarea-copy-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: white;
+    border: 1px solid var(--neko-gray-80);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    color: var(--neko-gray-50);
+    z-index: 1;
+
+    &:hover {
+      background: var(--neko-gray-98);
+      color: var(--neko-main-color);
+      border-color: var(--neko-main-color);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
   .neko-textarea {
+    font-family: var(--neko-font-family);
     font-size: var(--neko-font-size);
     border: 1.5px solid var(--neko-input-border);
     box-sizing: border-box;
     background: var(--neko-input-background);
-    color: black;
+    color: var(--neko-font-color);
     padding: 5px 10px;
     width: 100%;
+    /* Removes the inline descender gap so an embedded bottom action sits flush. */
+    display: block;
+    transition: opacity 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
 
     &::placeholder {
       color: rgba(0, 0, 0, 0.25);
     }
 
-    :focus {
+    &:focus {
       background-color: white;
-      border-color: #2271b1;
-      box-shadow: 0 0 0 1px #2271b1;
-      outline: 2px solid transparent;
+      outline: none !important;
+      box-shadow: none !important;
+      border-color: var(--neko-input-border) !important;
+    }
+    
+    &:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+      border-color: var(--neko-input-border) !important;
     }
 
-    :read-only {
-      background-color: var(--neko-gray-60);
-      border: none;
+    &:focus-within {
+      outline: none !important;
+      box-shadow: none !important;
+      border-color: var(--neko-input-border) !important;
+    }
+
+    &:read-only {
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--neko-gray-98),
+        var(--neko-gray-98) 10px,
+        var(--neko-gray-95) 10px,
+        var(--neko-gray-95) 20px
+      );
+      border: 1.5px solid var(--neko-gray-80);
+      color: var(--neko-gray-30);
+      cursor: default;
+      
+      &:focus {
+        background: repeating-linear-gradient(
+          -45deg,
+          var(--neko-gray-98),
+          var(--neko-gray-98) 10px,
+          var(--neko-gray-95) 10px,
+          var(--neko-gray-95) 20px
+        );
+        border-color: var(--neko-gray-80) !important;
+      }
+    }
+    
+    &:disabled {
+      color: var(--neko-gray-60);
+      background: var(--neko-gray-98);
+      border-color: var(--neko-input-border);
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 
   .neko-text-area-extra {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     color: var(--neko-gray-60);
     font-size: var(--neko-small-font-size);
     line-height: 14px;
 
     .neko-textarea-count {
-      margin: 5px 0 0 10px;
+      margin: 0 0 0 10px;
       text-align: right;
       min-width: 130px;
       display: block;
+      flex-shrink: 0;
     }
-  
+
     .neko-input-description {
       margin-top: 5px;
       margin-bottom: 0;
-      flex: auto;
+      flex: 1;
       font-size: var(--neko-small-font-size);
+
+      code {
+        font-size: 9px;
+        background: #016fba14;
+        border-radius: 5px;
+        padding: 2px 4px;
+      }
     }
   }
 
@@ -200,7 +376,9 @@ NekoTextArea.propTypes = {
   onBlurForce: PropTypes.bool,
   readOnly: PropTypes.bool,
   avoidOnEnterWithShift: PropTypes.bool,
-  fullHeight: PropTypes.bool
+  fullHeight: PropTypes.bool,
+  copyable: PropTypes.bool,
+  action: PropTypes.node
 };
 
 export { NekoTextArea };

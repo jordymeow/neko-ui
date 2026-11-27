@@ -1,7 +1,4 @@
-// Previous: none
-// Current: 0.0.0
-
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
 import { useClasses } from '../hooks';
@@ -69,6 +66,9 @@ const NekoLabel = Styled.label`
   padding: 0;
 `;
 
+/**
+ * @param {string} (variant) Tag Name
+ */
 const StyledNekoTypo = props => {
   const { children = null, style = {}, className = '', bold = false, h1, h2, h3, h4, h5, h6, p, span, label, ...rest } = props;
   const boldStyle = bold ? { fontWeight: 'bold' } : {};
@@ -96,25 +96,6 @@ const StyledNekoTypo = props => {
 };
 
 const NekoTypo = (props) => {
-  const [mounted, setMounted] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setMounted(true);
-    }, 300);
-  }, []);
-
-  useEffect(() => {
-    if (reference) {
-      reference.current = ref;
-    }
-  });
-
-  if (!mounted) {
-    return null;
-  }
-
   return (<StyledNekoTypo {...props} />);
 }
 
@@ -131,8 +112,7 @@ NekoTypo.propTypes = {
   bold: PropTypes.bool,
   style: PropTypes.object,
   className: PropTypes.string,
-  children: PropTypes.node,
-  reference: PropTypes.object
+  children: PropTypes.node
 };
 
 export { NekoTypo };

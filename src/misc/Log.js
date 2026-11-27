@@ -1,8 +1,5 @@
-// Previous: none
-// Current: 0.0.0
 
-
-const { useEffect, useRef, useState } = wp.element;
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 
 import { NekoBlock } from '../layout/Block';
@@ -65,7 +62,7 @@ const NekoLog = ({ refreshQuery, clearQuery, onRefresh = null, onClear = null, i
     }, [content]);
 
     return (
-        <NekoBlock title={i18n.COMMON.LOGS} busy={busy} className="primary" style={{ maxWidth: blockMaxWidth }}>
+        <NekoBlock title={i18n.COMMON.LOGS} busy={busy} className="primary neko-log" style={{ maxWidth: blockMaxWidth }}>
             <NekoButton onClick={() => refresh()}>{i18n.COMMON.REFRESH_LOGS}</NekoButton>
             <NekoButton className="danger" onClick={() => clear()}>{i18n.COMMON.CLEAR_LOGS}</NekoButton>
             <div style={logStyle} ref={logRef}>

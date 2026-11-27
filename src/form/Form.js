@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import Styled from 'styled-components';
 
 const Form = Styled.div`

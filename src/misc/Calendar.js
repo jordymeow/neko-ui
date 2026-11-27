@@ -1,6 +1,3 @@
-// Previous: none
-// Current: 0.0.0
-
 import { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Styled from 'styled-components';
@@ -13,24 +10,49 @@ const Days = {
   Thursday: 4,
   Friday: 5,
   Saturday: 6,
-  Sunday: 0
+  Sunday: 7
 }
 
 const StyledNekoCalendar = Styled.div`
   display: flex;
   flex-direction: column;
-  border-radius: 5px;
+  border-radius: 8px;
   font-family: var(--neko-font-family);
-  font-size: font-size: var(--neko-small-font-size);
+  font-size: var(--neko-small-font-size);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 `;
 
 const CalendarHeaders = Styled.div`
+  position: relative;
   display: flex;
   width: 100%;
-  padding: 10px 0px;
+  padding: 16px 0px;
   color: white;
   background: var(--neko-main-color);
-  border-radius: 5px 5px 0px 0px;
+  border-radius: 8px 8px 0px 0px;
+
+  /* Diagonal stripe pattern - same as NekoHeader */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 20px,
+      rgba(255, 255, 255, 0.3) 20px,
+      rgba(255, 255, 255, 0.3) 40px
+    );
+    background-position: 0 0;
+    background-size: 56.57px 56.57px;
+    pointer-events: none;
+    z-index: 0;
+  }
 
   div {
     width: calc(100% / 7);
@@ -38,6 +60,12 @@ const CalendarHeaders = Styled.div`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 1;
   }
 `;
 
@@ -51,37 +79,51 @@ const WeekContainer = Styled.div`
 `;
 
 const DayContainer = Styled.div`
-  background: purple;
   width: calc(100% / 7);
+  min-height: 80px;
   background: var(--neko-white);
-  padding: 3px;
-  border-bottom: 1px solid var(--neko-light-gray);
-  border-right: 1px solid var(--neko-light-gray);
+  padding: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
   position: relative;
-  transition: background-color 150ms linear;
+  transition: all 200ms ease;
   box-sizing: border-box;
 
   &:first-child {
-    border-left: 1px solid var(--neko-light-gray);
+    border-left: 1px solid rgba(0, 0, 0, 0.06);
   }
 
   &:last-child {
-    border-right: 1px solid var(--neko-light-gray);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  &:hover:not(.disabled) {
+    background: rgba(0, 0, 0, 0.02);
   }
 
   .day {
     text-align: right;
     color: var(--neko-black);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
   }
 
   &.highlighted {
-    background: #ffe8bc;
+    background: #fff3e0;
+    box-shadow: inset 0 0 0 2px var(--neko-main-color);
   }
 
   &.today .day {
-    font-weight: bold;
-    text-decoration: underline;
+    display: inline-block;
+    background: var(--neko-main-color);
+    color: white;
+    font-weight: 700;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
   }
 
   .gray-overlay {
@@ -90,12 +132,12 @@ const DayContainer = Styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    background: var(--neko-light-gray);
-    opacity: 0.8;
+    background: rgba(0, 0, 0, 0.04);
+    opacity: 1;
   }
 
   .event {
-    margin-bottom: 2px;
+    margin-bottom: 3px;
   }
 
   .event:last-child {
@@ -153,10 +195,8 @@ const NekoCalendar = (props) => {
   const weeks = useMemo(() => {
     const days = [];
     const currentDate = getFirstWeekDayForMonth(month, year, Days.Monday);
-    const totalDaysCount = numberOfDaysBetween(currentDate, new Date(year, month + 1, 1));
-    const totalCalendarDays = totalDaysCount < 25 ? 34 : 41;
-    const lastDate = new Date(currentDate);
-    lastDate.setDate(currentDate.getDate() + totalCalendarDays);
+    const totalCalendarDays = numberOfDaysBetween(currentDate, new Date(year, month, 1)) < 5 ? 34 : 41;
+    const lastDate = new Date(currentDate).setDate(currentDate.getDate() + totalCalendarDays)
     while (currentDate <= lastDate) {
       days.push(new Date(currentDate));
       currentDate.setDate(currentDate.getDate() + 1);
@@ -190,7 +230,7 @@ const NekoCalendar = (props) => {
         {weeks.map(week => 
           <WeekContainer key={week}>
             {week.map(day => {
-              const isCurrentMonth = day.getMonth() === month;
+              const isCurrentMonth = day.getMonth() == month;
               const isDisabled = !isCurrentMonth || day < disableDaysBefore;
               const dayClassName = (isDisabled ? 'disabled ' : '') + (isDayToday(day) ? 'today' : '')
                 + (day === highlightedDay ? 'highlighted' : '');
@@ -198,7 +238,7 @@ const NekoCalendar = (props) => {
               return (
                 <DayContainer className={dayClassName} key={day.getTime()}
                   onDragOver={(e) => { 
-                    if ( isDisabled || isSameDay(day, draggedEvent?.date) ) { 
+                    if ( isDisabled || isSameDay(day, draggedEvent.date) ) { 
                       return false;
                     };
                     e.preventDefault();
@@ -237,3 +277,5 @@ NekoCalendar.propTypes = {
   onEventClicked: PropTypes.func,
   onEventMoved: PropTypes.func,
 };
+
+export { NekoCalendar };
